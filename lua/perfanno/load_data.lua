@@ -37,10 +37,25 @@ local function parse_data(data)
 end
 
 local M = {}
-
 M.annotations = {}
-
+M.max_pcts = {}
 local current_data = nil
+
+local function set_max_pct()
+    M.max_pcts = {}
+
+    for event, event_dir in pairs(M.annotations) do
+        local mp = 0
+
+        for _, file_dir in pairs(event_dir) do
+            for _, pct in pairs(file_dir) do
+                mp = math.max(mp, pct)
+            end
+        end
+
+        M.max_pcts[event] = mp
+    end
+end
 
 function M.load_data(perf_data)
     local data
@@ -84,6 +99,8 @@ function M.load_data(perf_data)
             M.annotations[event][file] = file_dir
         end
     end
+
+    set_max_pct()
 end
 
 function M.reload_data()

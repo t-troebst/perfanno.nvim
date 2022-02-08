@@ -48,17 +48,11 @@ function M.annotate_buffer(bnr, event, opts)
     end
 
     if load_data.annotations[event][file] then
-        local max_pct = 0
-
-        for _, pct in pairs(load_data.annotations[event][file]) do
-            max_pct = math.max(max_pct, pct)
-        end
-
         for linenr, pct in pairs(load_data.annotations[event][file]) do
 
             if opts.highlights then
                 local num_hls = #opts.highlights
-                local i = math.floor(num_hls * pct / max_pct + 0.5)
+                local i = math.floor(num_hls * pct / load_data.max_pcts[event] + 0.5)
 
                 if i > 0 then
                     vim.api.nvim_buf_add_highlight(bnr, buffers[bnr], opts.highlights[i], linenr - 1, 0, -1)
