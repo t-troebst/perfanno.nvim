@@ -3,7 +3,8 @@ local function load_raw_data(file)
         file = "perf.data"
     end
 
-    local data_file = assert(io.popen("perf report -F overhead,srcline --stdio --full-source-path -i " .. file, "r"))
+    local esc = vim.fn.fnameescape(file)
+    local data_file = assert(io.popen("perf report -F overhead,srcline --stdio --full-source-path -i " .. esc, "r"))
     data_file:flush()
     local output = data_file:read("*all")
     data_file:close()
