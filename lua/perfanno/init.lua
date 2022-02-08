@@ -42,6 +42,7 @@ function M.setup(opts)
     vim.cmd[[command PerfAnnoClearBuffer :lua require("perfanno").clear_buffer()]]
     vim.cmd[[command PerfAnnoAnnotate :lua require("perfanno").annotate()]]
     vim.cmd[[command PerfAnnoClear :lua require("perfanno").clear()]]
+    vim.cmd[[command PerfAnnoFindHottest :lua require("perfanno.telescope").find_hottest()]]
 
     if M.opts.auto_annotate then
         vim.cmd[[autocmd BufRead * :lua require("perfanno").reannotate()]]

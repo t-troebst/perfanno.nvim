@@ -14,6 +14,10 @@ end
 
 local current_event = nil
 
+function M.get_current_event()
+    return current_event
+end
+
 function M.annotate_buffer(bnr, event, opts)
     if not bnr then
         bnr = vim.fn.bufnr("%")
