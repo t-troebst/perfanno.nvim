@@ -34,6 +34,11 @@ function M.setup(opts)
             table.insert(M.opts.highlights, "PerfAnno" .. i)
         end
     end
+
+    -- TODO: switch to vim.api.nvim_add_user_command once its available
+    vim.cmd[[command PerfAnnoLoadData :lua require("perfanno").load_data()]]
+    vim.cmd[[command PerfAnnoAnnotateBuffer :lua require("perfanno").annotate_buffer()]]
+    vim.cmd[[command PerfAnnoClearBuffer :lua require("perfanno").clear_buffer()]]
 end
 
 M.load_data = ld.load_data
