@@ -1,0 +1,11 @@
+================================================================================
+                                                                 *perfanno.nvim*
+
+perfanno.nvim is a plugin that allows annotating source files with profiling
+information collected with perf.
+
+  :h PerfAnnoHelloWorld
+
+PerfAnnoHelloWorld                                          *PerfAnnoHelloWorld*
+    Prints "hello world"
+================================================================================
