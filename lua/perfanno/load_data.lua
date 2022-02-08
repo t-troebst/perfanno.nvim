@@ -57,7 +57,7 @@ function M.load_data(perf_data)
         -- Can't find perf.data, ask user where it is
         local opts = {
             prompt = "Input path to perf.data: ",
-            default = vim.fn.getcwd(),
+            default = vim.fn.getcwd() .. "/",
             completion = "file"
         }
 

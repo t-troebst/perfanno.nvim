@@ -31,9 +31,9 @@ function M.annotate_buffer(bnr, event, opts)
         local events = get_events()
 
         if #events == 1 then
-            event = events[0]
+            event = events[1]
         else
-            vim.ui.select(events, {prompt = "Select event type to annotate:"}, function(choice)
+            vim.ui.select(events, {prompt = "Select event type to annotate: "}, function(choice)
                 if choice then
                     M.annotate_buffer(bnr, choice, opts)
                 end
@@ -96,9 +96,9 @@ function M.annotate(event, opts)
         local events = get_events()
 
         if #events == 1 then
-            event = events[0]
+            event = events[1]
         else
-            vim.ui.select(events, {prompt = "Select event type to annotate:"}, function(choice)
+            vim.ui.select(events, {prompt = "Select event type to annotate: "}, function(choice)
                 if choice then
                     M.annotate(choice, opts)
                 end
