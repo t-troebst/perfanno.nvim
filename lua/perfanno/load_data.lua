@@ -29,7 +29,7 @@ local function parse_data(data)
             if not result[current_event][file] then
                 result[current_event][file] = {}
             end
-            result[current_event][file][tonumber(linenr) - 1] = tonumber(pct)
+            result[current_event][file][tonumber(linenr)] = tonumber(pct)
         end
     end
 

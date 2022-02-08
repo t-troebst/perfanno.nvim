@@ -57,7 +57,7 @@ function M.annotate_buffer(bnr, event, opts)
                 local i = math.floor(num_hls * pct / max_pct + 0.5)
 
                 if i > 0 then
-                    vim.api.nvim_buf_add_highlight(bnr, buffers[bnr], opts.highlights[i], linenr, 0, -1)
+                    vim.api.nvim_buf_add_highlight(bnr, buffers[bnr], opts.highlights[i], linenr - 1, 0, -1)
                 end
             end
 
@@ -67,7 +67,7 @@ function M.annotate_buffer(bnr, event, opts)
                     virt_text_pos = "eol"
                 }
 
-                vim.api.nvim_buf_set_extmark(bnr, buffers[bnr], linenr, 0, vopts)
+                vim.api.nvim_buf_set_extmark(bnr, buffers[bnr], linenr - 1, 0, vopts)
             end
         end
     end
