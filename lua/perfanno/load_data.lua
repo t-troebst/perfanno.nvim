@@ -24,7 +24,7 @@ local function parse_data(data)
         end
 
         local pct, file, linenr = line:match("%s*(%d+%.%d%d)%%%s+(.*):(%d+)")
-        if pct and file ~= "??" then
+        if pct and vim.startswith(file, "/") then
             if not result[current_event][file] then
                 result[current_event][file] = {}
             end
@@ -97,7 +97,7 @@ function M.print_annotations()
             print("    File: " .. file)
 
             for linenr, pct in pairs(file_dir) do
-                print("        Line: " .. linenr .. " (" .. pct .. "%)")
+                print("        Line " .. linenr .. " (" .. pct .. "%)")
             end
         end
     end
