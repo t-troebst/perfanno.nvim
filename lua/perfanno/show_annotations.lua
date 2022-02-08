@@ -1,6 +1,6 @@
 local load_data = require("perfanno.load_data")
 local M = {}
-M.buffers = {}
+local buffers = {}
 
 local function get_events()
     local events = {}
@@ -21,8 +21,8 @@ function M.annotate_buffer(bnr, event, opts)
 
     local file = vim.fn.expand("#" .. bnr .. ":p")
 
-    if not M.buffers[bnr] then
-        M.buffers[bnr] = vim.api.nvim_create_namespace("perfanno_" .. bnr)
+    if not buffers[bnr] then
+        buffers[bnr] = vim.api.nvim_create_namespace("perfanno_" .. bnr)
     else
         M.clear_buffer(bnr)
     end
@@ -57,7 +57,7 @@ function M.annotate_buffer(bnr, event, opts)
                 local i = math.floor(num_hls * pct / max_pct + 0.5)
 
                 if i > 0 then
-                    vim.api.nvim_buf_add_highlight(bnr, M.buffers[bnr], opts.highlights[i], linenr, 0, -1)
+                    vim.api.nvim_buf_add_highlight(bnr, buffers[bnr], opts.highlights[i], linenr, 0, -1)
                 end
             end
 
@@ -67,7 +67,7 @@ function M.annotate_buffer(bnr, event, opts)
                     virt_text_pos = "eol"
                 }
 
-                vim.api.nvim_buf_set_extmark(bnr, M.buffers[bnr], linenr, 0, vopts)
+                vim.api.nvim_buf_set_extmark(bnr, buffers[bnr], linenr, 0, vopts)
             end
         end
     end
@@ -78,11 +78,11 @@ function M.clear_buffer(bnr)
         bnr = vim.fn.bufnr("%")
     end
 
-    if not M.buffers[bnr] then
+    if not buffers[bnr] then
         return
     end
 
-    vim.api.nvim_buf_clear_namespace(bnr, M.buffers[bnr], 0, -1)
+    vim.api.nvim_buf_clear_namespace(bnr, buffers[bnr], 0, -1)
 end
 
 function M.reannotate(bnr, opts)
