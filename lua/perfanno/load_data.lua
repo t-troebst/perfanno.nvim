@@ -39,6 +39,8 @@ local M = {}
 
 M.annotations = {}
 
+local current_data = nil
+
 function M.load_data(perf_data)
     local data
 
@@ -67,6 +69,8 @@ function M.load_data(perf_data)
         return
     end
 
+    current_data = perf_data
+
     -- Update annotations
     -- Note: we currently do not delete potentially outdated files because the user
     -- might be running two different annotations at the same time
@@ -79,6 +83,10 @@ function M.load_data(perf_data)
             M.annotations[event][file] = file_dir
         end
     end
+end
+
+function M.reload_data()
+    M.load_data(current_data)
 end
 
 function M.print_annotations()

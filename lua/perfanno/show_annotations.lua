@@ -12,6 +12,7 @@ local function get_events()
     return events
 end
 
+local current_event = nil
 
 function M.annotate_buffer(bnr, event, opts)
     if not bnr then
@@ -82,6 +83,44 @@ function M.clear_buffer(bnr)
     end
 
     vim.api.nvim_buf_clear_namespace(bnr, M.buffers[bnr], 0, -1)
+end
+
+function M.reannotate(bnr, opts)
+    if current_event then
+        M.annotate_buffer(bnr, current_event, opts)
+    end
+end
+
+function M.annotate(event, opts)
+    if not event then
+        local events = get_events()
+
+        if #events == 1 then
+            event = events[0]
+        else
+            vim.ui.select(events, {prompt = "Select event type to annotate:"}, function(choice)
+                if choice then
+                    M.annotate(choice, opts)
+                end
+            end)
+
+            return
+        end
+    end
+
+    current_event = event
+
+    for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
+        M.reannotate(bnr, opts)
+    end
+end
+
+function M.clear()
+    current_event = nil
+
+    for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
+        M.clear_buffer(bnr)
+    end
 end
 
 return M
