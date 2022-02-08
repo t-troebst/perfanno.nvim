@@ -37,6 +37,8 @@ end
 
 local M = {}
 
+M.annotations = {}
+
 function M.load_data(perf_data)
     local data
 
@@ -65,21 +67,22 @@ function M.load_data(perf_data)
         return
     end
 
-    -- Update PerfAnnotations
-    -- Note: we don't reset it because maybe the user is profiling multiple different files
+    -- Update annotations
+    -- Note: we currently do not delete potentially outdated files because the user
+    -- might be running two different annotations at the same time
     for event, event_dir in pairs(data) do
-        if not PerfAnnotations[event] then
-            PerfAnnotations[event] = {}
+        if not M.annotations[event] then
+            M.annotations[event] = {}
         end
 
         for file, file_dir in pairs(event_dir) do
-            PerfAnnotations[event][file] = file_dir
+            M.annotations[event][file] = file_dir
         end
     end
 end
 
-function M.debug_print(result_dict)
-    for event, event_dir in pairs(result_dict) do
+function M.print_annotations()
+    for event, event_dir in pairs(M.annotations) do
         print("Event: " .. event)
 
         for file, file_dir in pairs(event_dir) do

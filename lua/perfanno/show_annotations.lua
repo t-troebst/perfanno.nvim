@@ -1,25 +1,27 @@
+local load_data = require("perfanno.load_data")
 local M = {}
-
+M.buffers = {}
 
 local function get_events()
     local events = {}
 
-    for event, _ in pairs(PerfAnnotations) do
+    for event, _ in pairs(load_data.annotations) do
         table.insert(events, event)
     end
 
     return events
 end
 
-function M.annotate_buffer(bnr, event)
+
+function M.annotate_buffer(bnr, event, opts)
     if not bnr then
         bnr = vim.fn.bufnr("%")
     end
 
     local file = vim.fn.expand("#" .. bnr .. ":p")
 
-    if not PerfAnnoBuffers[bnr] then
-        PerfAnnoBuffers[bnr] = vim.api.nvim_create_namespace("perfanno_" .. bnr)
+    if not M.buffers[bnr] then
+        M.buffers[bnr] = vim.api.nvim_create_namespace("perfanno_" .. bnr)
     else
         M.clear_buffer(bnr)
     end
@@ -27,36 +29,45 @@ function M.annotate_buffer(bnr, event)
     if not event then
         local events = get_events()
 
-        vim.ui.select(events, {prompt = "Select event type to annotate:"}, function(choice)
-            if choice then
-                M.annotate_buffer(bnr, choice)
-            end
-        end)
+        if #events == 1 then
+            event = events[0]
+        else
+            vim.ui.select(events, {prompt = "Select event type to annotate:"}, function(choice)
+                if choice then
+                    M.annotate_buffer(bnr, choice, opts)
+                end
+            end)
 
-        return
+            return
+        end
     end
 
-    if PerfAnnotations[event][file] then
-        max_pct = 0
+    if load_data.annotations[event][file] then
+        local max_pct = 0
 
-        for _, pct in pairs(PerfAnnotations[event][file]) do
+        for _, pct in pairs(load_data.annotations[event][file]) do
             max_pct = math.max(max_pct, pct)
         end
 
-        for linenr, pct in pairs(PerfAnnotations[event][file]) do
-            local i = math.floor(5 * pct / max_pct + 0.5)
+        for linenr, pct in pairs(load_data.annotations[event][file]) do
 
-            if i > 0 then
-                local hl = "PerfAnno" .. i
-                vim.api.nvim_buf_add_highlight(bnr, PerfAnnoBuffers[bnr], hl, linenr, 0, -1)
+            if opts.highlights then
+                local num_hls = #opts.highlights
+                local i = math.floor(num_hls * pct / max_pct + 0.5)
+
+                if i > 0 then
+                    vim.api.nvim_buf_add_highlight(bnr, M.buffers[bnr], opts.highlights[i], linenr, 0, -1)
+                end
             end
 
-            local opts = {
-                virt_text = {{pct .. "%", "ErrorMsg"}},
-                virt_text_pos = "eol"
-            }
+            if opts.virtual_text then
+                local vopts = {
+                    virt_text = {{pct .. "%", opts.virtual_text.highlight}},
+                    virt_text_pos = "eol"
+                }
 
-            vim.api.nvim_buf_set_extmark(bnr, PerfAnnoBuffers[bnr], linenr, 0, opts)
+                vim.api.nvim_buf_set_extmark(bnr, M.buffers[bnr], linenr, 0, vopts)
+            end
         end
     end
 end
@@ -66,11 +77,11 @@ function M.clear_buffer(bnr)
         bnr = vim.fn.bufnr("%")
     end
 
-    if not PerfAnnoBuffers[bnr] then
+    if not M.buffers[bnr] then
         return
     end
 
-    vim.api.nvim_buf_clear_namespace(bnr, PerfAnnoBuffers[bnr], 0, -1)
+    vim.api.nvim_buf_clear_namespace(bnr, M.buffers[bnr], 0, -1)
 end
 
 return M
