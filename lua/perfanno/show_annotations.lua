@@ -61,7 +61,7 @@ function M.annotate_buffer(bnr, event, opts)
 
             if opts.virtual_text then
                 local vopts = {
-                    virt_text = {{pct .. "%", opts.virtual_text.highlight}},
+                    virt_text = {{string.format("%.2f", pct) .. "%", opts.virtual_text.highlight}},
                     virt_text_pos = "eol"
                 }
 
@@ -89,6 +89,8 @@ function M.reannotate(bnr, opts)
     end
 end
 
+local toggle_on = false
+
 function M.annotate(event, opts)
     if not event then
         local events = get_events()
@@ -107,6 +109,7 @@ function M.annotate(event, opts)
     end
 
     current_event = event
+    toggle_on = true
 
     for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
         M.reannotate(bnr, opts)
@@ -115,10 +118,38 @@ end
 
 function M.clear()
     current_event = nil
+    toggle_on = false
 
     for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
         M.clear_buffer(bnr)
     end
 end
+
+function M.toggle_annotations(opts)
+    if toggle_on then
+        toggle_on = false
+
+        for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
+            M.clear_buffer(bnr)
+        end
+    else
+        if not current_event then
+            if load_data.is_loaded() then
+                M.annotate(nil, opts)
+                return
+            end
+
+            print("No annotations are loaded!")
+            return
+        end
+
+        toggle_on = true
+
+        for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
+            M.reannotate(bnr, opts)
+        end
+    end
+end
+
 
 return M
