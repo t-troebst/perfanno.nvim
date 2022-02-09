@@ -2,31 +2,48 @@ local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 
-local load_data = require("perfanno.load_data")
-local show_anno = require("perfanno.show_annotations")
+local callgraph = require("perfanno.callgraph")
+local annotate = require("perfanno.annotate")
 
-local function annotation_table()
+local function annotation_table(event, anno_opts)
     local opts = {}
 
     opts.results = {}
 
-    for file, file_dir in pairs(load_data.annotations[show_anno.get_current_event()]) do
-        for linenr, data in pairs(file_dir) do
-            table.insert(opts.results, {file, linenr, data[1], data[2]})
+    for file, file_tbl in pairs(callgraph.callgraphs[event].node_info) do
+        for linenr, node_info in pairs(file_tbl) do
+            table.insert(opts.results, {file, linenr, node_info.count})
         end
     end
 
     table.sort(opts.results, function(e1, e2)
-        return e1[4] > e2[4]
+        return e1[3] > e2[3]
     end)
 
 
     opts.entry_maker = function(entry)
+        local fmt = annotate.format_annotation(entry[3], callgraph.callgraphs[event].total_count, anno_opts)
+
+        if not fmt then
+            return
+        end
+
+        if entry[1] == "symbol" then
+            return {
+                lnum = 0,
+                display = fmt .. " " .. entry[2],
+                ordinal = entry[2],
+                path = "",
+                row = 0,
+                col = 0,
+            }
+        end
+
         local short_path = vim.fn.fnamemodify(entry[1], ":~:.")
 
         return {
             lnum = entry[2],
-            display = entry[3] .. " " .. short_path .. ":" .. entry[2],
+            display = fmt .. " " .. short_path .. ":" .. entry[2],
             ordinal = short_path .. ":" .. entry[2],
             path = entry[1],
             row = entry[2],
@@ -39,19 +56,17 @@ end
 
 local M = {}
 
-function M.find_hottest(opts)
-    if not show_anno.get_current_event() then
-        print("Annotations not loaded, do :PerfAnnoAnnotate first!")
-        return
-    end
+function M.find_hottest(event, anno_opts, telescope_opts)
+    assert(callgraph.is_loaded(), "Callgraph is not loaded!")
+    assert(callgraph.callgraphs[event], "Invalid event!")
 
-    opts = opts or {}
+    telescope_opts = telescope_opts or {}
 
-    pickers.new(opts, {
+    pickers.new(telescope_opts, {
         prompt_title = "",
-        finder = annotation_table(),
-        sorter = conf.file_sorter(opts),
-        previewer = conf.grep_previewer(opts)
+        finder = annotation_table(event, anno_opts),
+        sorter = conf.file_sorter(telescope_opts),
+        previewer = conf.grep_previewer(telescope_opts)
     }):find()
 end
 
