@@ -130,7 +130,11 @@ end
 function M.pick_event()
     assert(callgraph.is_loaded(), "Callgraph must be loaded before we can pick an event!")
 
-    pick_event(function() end)
+    pick_event(function(event)
+        if anno_opts and annotate.is_toggled() then
+            annotate.annoatate(event, anno_opts)
+        end
+    end)
 end
 
 function M.annotate()

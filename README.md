@@ -11,6 +11,8 @@ In addition, PerfAnno provides a Telescope finder that allows you to immediately
 
 ![demo](https://user-images.githubusercontent.com/15610942/153112464-ebfee5f2-11c3-4185-ad96-2cf8e7f7cd42.gif)
 
+**This demo is bound to be out of date compared to the current state of the plugin!**
+
 ## Installation
 
 This plugin was tested on NeoVim 0.61 and perf 5.16.
@@ -35,11 +37,8 @@ require("perfanno").setup {
     -- numbers: either "count" for sample counts or "percent" for (global) percentages
     -- format: how to format the line annotations, also used in the telescope finder
     -- mimimum: only annotate lines where the sample count / percentage is above this value
-    flat = {numbers = "count", format = "%d", minimum = 1},
-    callgraph = {numbers = "percent", format = "%.2f%%", minimum = 0.5},
-    
-    -- Adds an auto command to annotate newly opened buffers if we have the data from perf
-    auto_annotate = true,
+    flat_format = {numbers = "count", format = "%d", minimum = 1},
+    callgraph_format = {numbers = "percent", format = "%.2f%%", minimum = 0.5},
 }
 ```
 
@@ -49,14 +48,17 @@ require("perfanno").setup {
 
 The typical workflow uses the following commands:
 
-* `:PerfAnnoAnnotateFlat` loads flat perf data and annotates all buffers. If there is no `perf.data` file in your working directory, you will be asked to locate one. If there are multiple events in that file, you will also be asked which event to annotate.
-* `:PerfAnnoAnnotateCallGraph` loads callgraph data and annotates all buffers. Works just like `:PerfAnnoAnnotateFlat`.
-* `:PerfAnnoToggleAnnotations` toggles annotations assuming they have been loaded.
-* `:PerfAnnoFindHottest` opens a telescope finder with the hottest files according to the current annotations.
+* `:PerfLoadFlat` loads flat perf data or `:PerfLoadCallGraph` loads full call graph perf data. If there is no `perf.data` file in your working directory, you will be asked to locate one.
+* `:PerfToggleAnnotations` toggles annotations in all buffers assuming they have been loaded. If the perf data contains multiple events you will be asked to pick one the first time you use this command.
+* `:PerfPickEvent` chooses a different event from the perf data.
+* `:PerfHottest` opens a telescope finder with the hottest lines according to the current annotations.
+* `:PerfHottestCallers` opens a telescope finder with the hottest lines that lead directly to the currently selected lines. Typically, you would select a function to see from where it gets called the most. However, you may also want to select a file, a class, or even specific lines.
 
 ## Future Goals
 
 * Allow annotating relative to a certain area (function, block, selection, file, etc.)
-* Add a picker to find the most frequent callers of a function
-* Add `vim.ui.select` fallback option for `:PerfAnnoFindHottest` if telescope is not installed
+* Make `:PerfHottestCallers` more convenient by automatically selecting functions with treesitter.
+* Add `vim.ui.select` fallback option if telescope is not installed
 * Show annotations inside the telescope previewer
+* Add callgraph exploration via a very customized telescope finder
+* All support for other profilers: we only need stack traces with source line information
