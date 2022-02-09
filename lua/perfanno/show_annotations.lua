@@ -82,13 +82,13 @@ function M.clear_buffer(bnr)
     vim.api.nvim_buf_clear_namespace(bnr, buffers[bnr], 0, -1)
 end
 
+local toggle_on = false
+
 function M.reannotate(bnr, opts)
-    if current_event then
+    if current_event and toggle_on then
         M.annotate_buffer(bnr, current_event, opts)
     end
 end
-
-local toggle_on = false
 
 function M.annotate(event, opts)
     if not event then
