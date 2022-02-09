@@ -20,11 +20,14 @@ local function annotation_table()
         return e1[4] > e2[4]
     end)
 
+
     opts.entry_maker = function(entry)
+        local short_path = vim.fn.fnamemodify(entry[1], ":~:.")
+
         return {
             lnum = entry[2],
-            display = entry[3] .. " " .. entry[1] .. ":" .. entry[2],
-            ordinal = entry[1] .. ":" .. entry[2],
+            display = entry[3] .. " " .. short_path .. ":" .. entry[2],
+            ordinal = short_path .. ":" .. entry[2],
             path = entry[1],
             row = entry[2],
             col = 0
