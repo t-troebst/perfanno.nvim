@@ -2,6 +2,8 @@
 
 TODO
 
+![demo](https://i.imgur.com/AaF3Csy.mp4)
+
 ## Installation
 
 TODO
