@@ -44,7 +44,6 @@ require("perfanno").setup {
 ```
 
 **Note:** if you want to use the `:PerfAnnoFindHottest` command to jump to the hottest lines of code, you need to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
-In the future, I plan to add a fallback option that uses `vim.ui.select`.
 
 ## Workflow
 
@@ -54,3 +53,10 @@ The typical workflow uses the following commands:
 * `:PerfAnnoAnnotateCallGraph` loads callgraph data and annotates all buffers. Works just like `:PerfAnnoAnnotateFlat`.
 * `:PerfAnnoToggleAnnotations` toggles annotations assuming they have been loaded.
 * `:PerfAnnoFindHottest` opens a telescope finder with the hottest files according to the current annotations.
+
+## Future Goals
+
+* Allow annotating relative to a certain area (function, block, selection, file, etc.)
+* Add a picker to find the most frequent callers of a function
+* Add `vim.ui.select` fallback option for `:PerfAnnoFindHottest` if telescope is not installed
+* Show annotations inside the telescope previewer
