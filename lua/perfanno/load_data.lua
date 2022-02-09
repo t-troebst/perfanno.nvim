@@ -21,14 +21,14 @@ local function load_raw_data(file, callgraph)
     return output
 end
 
-local function format_data(data, counts, opts)
+local function format_annotations(data, counts, opts)
     for event, event_dir in pairs(data) do
         for file, file_dir in pairs(event_dir) do
             for linenr, cnt in pairs(file_dir) do
-                local rel = cnt / counts[event]
+                local rel = cnt / counts[event][2]
 
                 if opts.numbers == "percent" then
-                    cnt = 100 * rel
+                    cnt = 100 * cnt / counts[event][1]
                 end
 
                 if cnt > opts.minimum then
@@ -51,13 +51,13 @@ local function parse_call_graph(data)
 
         if cnt and event then
             result[event] = {}
-            counts[event] = 0
+            counts[event] = {0, 0}
             current_event = event
         else
             local count, trace = line:match("^(%d+) (.*)$")
 
             if count and trace then
-                counts[current_event] = counts[current_event] + count
+                counts[current_event][1] = counts[current_event][1] + count
 
                 for file, linenr in trace:gmatch("(/.-):(%d+)") do
                     if not result[current_event][file] then
@@ -72,13 +72,14 @@ local function parse_call_graph(data)
 
                     local cur_count = result[current_event][file][linenr]
                     result[current_event][file][linenr] = cur_count + count
+                    counts[current_event][2] = math.max(counts[current_event][2], cur_count + count)
                 end
             end
 
         end
     end
 
-    return {result, counts}
+    return result, counts
 end
 
 local function parse_line_data(data)
@@ -91,13 +92,13 @@ local function parse_line_data(data)
 
         if num then
             result[event] = {}
-            counts[event] = 0
+            counts[event] = {0, 0}
             current_event = event
         else
-            local count, file, linenr = line:match("%s*(%d+)%s+(.*):(%d+)")
+            local count, file, linenr = line:match("^%s*(%d+)%s+(.*):(%d+)")
 
             if count and vim.startswith(file, "/") then
-                counts[current_event] = counts[current_event] + count
+                counts[current_event][1] = counts[current_event][1] + count
 
                 if not result[current_event][file] then
                     result[current_event][file] = {}
@@ -111,22 +112,29 @@ local function parse_line_data(data)
 
                 local cur_count = result[current_event][file][linenr]
                 result[current_event][file][linenr] = cur_count + count
+                counts[current_event][2] = math.max(counts[current_event][2], cur_count + count)
+            else
+                local address_count = line:match("^%s*(%d+)%s+.*%+%d+")
+
+                if address_count then
+                    counts[current_event][1] = counts[current_event][1] + address_count
+                end
             end
         end
     end
 
-    return {result, counts}
+    return result, counts
 end
 
 local function parse_data(data, callgraph, opts)
     if callgraph then
-        local result = parse_call_graph(data)
-        format_data(result[1], result[2], opts.callgraph)
-        return result[1]
+        local result, counts = parse_call_graph(data)
+        format_annotations(result, counts, opts.callgraph)
+        return result
     else
-        local result = parse_line_data(data)
-        format_data(result[1], result[2], opts.flat)
-        return result[1]
+        local result, counts = parse_line_data(data)
+        format_annotations(result, counts, opts.flat)
+        return result
     end
 end
 
