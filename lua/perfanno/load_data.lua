@@ -41,7 +41,7 @@ local function format_data(data, counts, opts)
     end
 end
 
-local function parse_call_graph(data, opts)
+local function parse_call_graph(data)
     local result = {}
     local counts = {}
     local current_event = ""
