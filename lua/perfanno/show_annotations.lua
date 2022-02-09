@@ -48,11 +48,10 @@ function M.annotate_buffer(bnr, event, opts)
     end
 
     if load_data.annotations[event][file] then
-        for linenr, pct in pairs(load_data.annotations[event][file]) do
-
+        for linenr, data in pairs(load_data.annotations[event][file]) do
             if opts.highlights then
                 local num_hls = #opts.highlights
-                local i = math.floor(num_hls * pct / load_data.max_pcts[event] + 0.5)
+                local i = math.floor(num_hls * data[2] + 0.5)
 
                 if i > 0 then
                     vim.api.nvim_buf_add_highlight(bnr, buffers[bnr], opts.highlights[i], linenr - 1, 0, -1)
@@ -61,7 +60,7 @@ function M.annotate_buffer(bnr, event, opts)
 
             if opts.virtual_text then
                 local vopts = {
-                    virt_text = {{string.format("%.2f", pct) .. "%", opts.virtual_text.highlight}},
+                    virt_text = {{data[1], opts.virtual_text.highlight}},
                     virt_text_pos = "eol"
                 }
 

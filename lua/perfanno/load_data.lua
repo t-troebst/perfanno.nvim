@@ -9,7 +9,7 @@ local function load_raw_data(file, callgraph)
     if callgraph then
         cmd = "perf report -g folded,0,caller,srcline,branch,count --no-children --full-source-path --stdio -i " .. esc
     else
-        cmd = "perf report -F overhead,srcline --stdio --full-source-path -i " .. esc
+        cmd = "perf report -g none -F sample,srcline --stdio --full-source-path -i " .. esc
     end
 
 
@@ -21,7 +21,27 @@ local function load_raw_data(file, callgraph)
     return output
 end
 
-local function parse_call_graph(data, min)
+local function format_data(data, counts, opts)
+    for event, event_dir in pairs(data) do
+        for file, file_dir in pairs(event_dir) do
+            for linenr, cnt in pairs(file_dir) do
+                local rel = cnt / counts[event]
+
+                if opts.numbers == "percent" then
+                    cnt = 100 * rel
+                end
+
+                if cnt > opts.minimum then
+                    data[event][file][linenr] = {string.format(opts.format, cnt), rel}
+                else
+                    data[event][file][linenr] = nil
+                end
+            end
+        end
+    end
+end
+
+local function parse_call_graph(data, opts)
     local result = {}
     local counts = {}
     local current_event = ""
@@ -44,37 +64,26 @@ local function parse_call_graph(data, min)
                         result[current_event][file] = {}
                     end
 
-                    if not result[current_event][file][tonumber(linenr)] then
-                        result[current_event][file][tonumber(linenr)] = 0
+                    linenr = tonumber(linenr)
+
+                    if not result[current_event][file][linenr] then
+                        result[current_event][file][linenr] = 0
                     end
 
-                    local cur_count = result[current_event][file][tonumber(linenr)]
-                    result[current_event][file][tonumber(linenr)] = cur_count + count
+                    local cur_count = result[current_event][file][linenr]
+                    result[current_event][file][linenr] = cur_count + count
                 end
             end
 
         end
     end
 
-    for event, event_dir in pairs(result) do
-        for file, file_dir in pairs(event_dir) do
-            for linenr, cnt in pairs(file_dir) do
-                local pct = 100 * cnt / counts[event]
-
-                if pct > min then
-                    result[event][file][linenr] = pct
-                else
-                    result[event][file][linenr] = nil
-                end
-            end
-        end
-    end
-
-    return result
+    return {result, counts}
 end
 
-local function parse_line_data(data, min)
+local function parse_line_data(data)
     local result = {}
+    local counts = {}
     local current_event = ""
 
     for line in data:gmatch("[^\r\n]+") do
@@ -82,59 +91,50 @@ local function parse_line_data(data, min)
 
         if num then
             result[event] = {}
+            counts[event] = 0
             current_event = event
         else
-            local pct, file, linenr = line:match("%s*(%d+%.%d%d)%%%s+(.*):(%d+)")
+            local count, file, linenr = line:match("%s*(%d+)%s+(.*):(%d+)")
 
-            if pct and vim.startswith(file, "/") then
+            if count and vim.startswith(file, "/") then
+                counts[current_event] = counts[current_event] + count
+
                 if not result[current_event][file] then
                     result[current_event][file] = {}
                 end
 
-                if tonumber(pct) > min then
-                    result[current_event][file][tonumber(linenr)] = tonumber(pct)
+                linenr = tonumber(linenr)
+
+                if not result[current_event][file][linenr] then
+                    result[current_event][file][linenr] = 0
                 end
+
+                local cur_count = result[current_event][file][linenr]
+                result[current_event][file][linenr] = cur_count + count
             end
         end
     end
 
-    return result
+    return {result, counts}
 end
 
-local function parse_data(data, callgraph, min)
-    if not min then
-        min = 0
-    end
-
+local function parse_data(data, callgraph, opts)
     if callgraph then
-        return parse_call_graph(data, min)
+        local result = parse_call_graph(data)
+        format_data(result[1], result[2], opts.callgraph)
+        return result[1]
     else
-        return parse_line_data(data, min)
+        local result = parse_line_data(data)
+        format_data(result[1], result[2], opts.flat)
+        return result[1]
     end
 end
 
 local M = {}
 M.annotations = {}
-M.max_pcts = {}
 local current_data = nil
 
-local function set_max_pct()
-    M.max_pcts = {}
-
-    for event, event_dir in pairs(M.annotations) do
-        local mp = 0
-
-        for _, file_dir in pairs(event_dir) do
-            for _, pct in pairs(file_dir) do
-                mp = math.max(mp, pct)
-            end
-        end
-
-        M.max_pcts[event] = mp
-    end
-end
-
-function M.load_data(perf_data, callgraph, min)
+function M.load_data(perf_data, callgraph, opts)
     local perf_output
 
     if perf_data then
@@ -148,37 +148,22 @@ function M.load_data(perf_data, callgraph, min)
         perf_output = load_raw_data(perf_data, callgraph)
     else
         -- Can't find perf.data, ask user where it is
-        local opts = {
+        local input_opts = {
             prompt = "Input path to perf.data: ",
             default = vim.fn.getcwd() .. "/",
             completion = "file"
         }
 
-        vim.ui.input(opts, function(choice)
+        vim.ui.input(input_opts, function(choice)
             if choice then
-                M.load_data(choice, callgraph, min)
+                M.load_data(choice, callgraph, opts)
             end
         end)
         return
     end
 
-    local data = parse_data(perf_output, callgraph, min)
     current_data = perf_data
-
-    -- Update annotations
-    -- Note: we currently do not delete potentially outdated files because the user
-    -- might be running two different annotations at the same time
-    for event, event_dir in pairs(data) do
-        if not M.annotations[event] then
-            M.annotations[event] = {}
-        end
-
-        for file, file_dir in pairs(event_dir) do
-            M.annotations[event][file] = file_dir
-        end
-    end
-
-    set_max_pct()
+    M.annotations = vim.tbl_extend("force", M.annotations, parse_data(perf_output, callgraph, opts))
 end
 
 function M.is_loaded()

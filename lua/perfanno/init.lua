@@ -11,7 +11,8 @@ local defaults = {
     highlights = nil,
     virtual_text = {color = "#CC3300", highlight = nil},
     auto_annotate = true,
-    minimum_pct = 0.1,
+    flat = {numbers="count", format="%d", minimum=1},
+    callgraph = {numbers="percent", format="%.2f%%", minimum=0.5},
 }
 
 M.opts = defaults
@@ -54,7 +55,7 @@ function M.setup(opts)
 end
 
 function M.load_data(data, callgraph)
-    ld.load_data(data, callgraph, M.opts.minimum_pct)
+    ld.load_data(data, callgraph, M.opts)
 end
 
 function M.annotate_buffer(bnr, event)
@@ -62,7 +63,7 @@ function M.annotate_buffer(bnr, event)
 end
 
 function M.annotate(event, callgraph)
-    ld.reload_data(callgraph, M.opts.minimum_pct)
+    ld.reload_data(callgraph, M.opts)
     sa.annotate(event, M.opts)
 end
 
