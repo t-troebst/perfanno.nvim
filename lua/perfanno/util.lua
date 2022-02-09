@@ -22,4 +22,15 @@ function M.pairwise(list)
     end
 end
 
+function M.visual_selection_range()
+    local _, csrow, cscol, _ = unpack(vim.fn.getpos("'<"))
+    local _, cerow, cecol, _ = unpack(vim.fn.getpos("'>"))
+
+    if csrow < cerow or (csrow == cerow and cscol <= cecol) then
+        return csrow, cscol, cerow, cecol
+    else
+        return cerow, cecol, csrow, cscol
+    end
+end
+
 return M

@@ -65,6 +65,40 @@ local function process_traces(traces)
     return node_info, total_count, max_count
 end
 
+function M.merge_in_counts(event, nodes)
+    local result = {}
+
+    for _, node in ipairs(nodes) do
+        for file, file_tbl in pairs(M.callgraphs[event].node_info[node[1]][node[2]].in_counts) do
+            for linenr, count in pairs(file_tbl) do
+                util.init(result, file, {})
+                util.init(result[file], linenr, 0)
+
+                result[file][linenr] = result[file][linenr] + count
+            end
+        end
+    end
+
+    return result
+end
+
+function M.merge_out_counts(event, nodes)
+    local result = {}
+
+    for _, node in ipairs(nodes) do
+        for file, file_tbl in pairs(M.callgraphs[event].node_info[node[1]][node[2]].out_counts) do
+            for linenr, count in pairs(file_tbl) do
+                util.init(result, file, {})
+                util.init(result[file], linenr, 0)
+
+                result[file][linenr] = result[file][linenr] + count
+            end
+        end
+    end
+
+    return result
+end
+
 function M.load_traces(traces)
     M.events = {}
     M.callgraphs = {}

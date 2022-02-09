@@ -3,6 +3,7 @@
 local callgraph = require("perfanno.callgraph")
 local parse_perf = require("perfanno.parse_perf")
 local annotate = require("perfanno.annotate")
+local util = require("perfanno.util")
 local telescope = require("perfanno.telescope")
 
 local M = {}
@@ -48,6 +49,7 @@ function M.setup(setup_opts)
     vim.cmd[[command PerfAnnotate :lua require("perfanno").annotate()]]
     vim.cmd[[command PerfToggleAnnotations :lua require("perfanno").toggle_annotations()]]
     vim.cmd[[command PerfHottest :lua require("perfanno").find_hottest()]]
+    vim.cmd[[command PerfHottestCallers :lua require("perfanno").find_hottest_callers()]]
 
     -- Setup automatic annotation of new buffers
     vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
@@ -165,6 +167,20 @@ function M.find_hottest()
     M.with_event(function(event)
         if event then
             telescope.find_hottest(event, anno_opts)
+        end
+    end)
+end
+
+function M.find_hottest_callers()
+    assert(anno_opts, "You must use load_perf_flat() or load_perf_callgraph() first!")
+
+    M.with_event(function(event)
+        if event then
+
+            local file = vim.fn.expand("%:p")
+            local line_begin, _, line_end, _ = util.visual_selection_range()
+
+            telescope.find_hottest_callers(file, line_begin, line_end, event, anno_opts)
         end
     end)
 end
