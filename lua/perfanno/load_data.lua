@@ -156,7 +156,7 @@ function M.load_data(perf_data, callgraph, min)
 
         vim.ui.input(opts, function(choice)
             if choice then
-                M.load_data(choice, callgraph)
+                M.load_data(choice, callgraph, min)
             end
         end)
         return

@@ -18,7 +18,7 @@ M.opts = defaults
 
 function M.setup(opts)
     if opts then
-        vim.tbl_extend("force", M.opts, opts)
+        M.opts = vim.tbl_extend("force", M.opts, opts)
     end
 
     -- Create highlight for virtual text if a color was given
