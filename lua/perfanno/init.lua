@@ -10,9 +10,9 @@ local defaults = {
     colors = {"#46292F", "#672C23", "#892E18", "#AA310C", "#CC3300"},
     highlights = nil,
     virtual_text = {color = "#CC3300", highlight = nil},
-    auto_annotate = true,
     flat = {numbers="count", format="%d", minimum=1},
     callgraph = {numbers="percent", format="%.2f%%", minimum=0.5},
+    auto_annotate = true,
 }
 
 M.opts = defaults
