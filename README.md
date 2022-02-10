@@ -15,7 +15,7 @@ In addition, PerfAnno provides a Telescope finder that allows you to immediately
 
 ## Installation
 
-This plugin was tested on NeoVim 0.61 and perf 5.16.
+This plugin requires NeoVim 0.6 and was tested with perf 5.16.
 The callgraph mode may require a relatively recent version of perf that supports folded output.
 You should be able to install this plugin the same way you install other NeoVim lua plugins, e.g. via `use "t-troebst/perfanno.nvim"` in packer.
 After installing, you can initialize the plugin by calling:
@@ -61,4 +61,4 @@ The typical workflow uses the following commands:
 * Add `vim.ui.select` fallback option if telescope is not installed
 * Show annotations inside the telescope previewer
 * Add callgraph exploration via a very customized telescope finder
-* All support for other profilers: we only need stack traces with source line information
+* Add support for other profilers: we only need stack traces with source line information
