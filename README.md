@@ -9,7 +9,7 @@ It supports two different modes:
 If the perf.data file has multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
 In addition, PerfAnno provides a Telescope finder that allows you to immediately jump to the hottest lines in your code base or the hottest callers of a specific region of code (typically a function).
 
-![demo](https://user-images.githubusercontent.com/15610942/153112464-ebfee5f2-11c3-4185-ad96-2cf8e7f7cd42.gif)
+![demo](https://user-images.githubusercontent.com/15610942/153376301-d096ae61-e6a3-46f3-a8b1-305bd0007d7a.gif)
 
 **This demo might become slightly out of date as I continue working on the plugin!**
 
