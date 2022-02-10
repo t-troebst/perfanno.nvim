@@ -57,6 +57,9 @@ require("perfanno").setup {
 
 ```
 
+You will most likely want to set `line_highlights` and `vt_highlight` to appropriate highlights to make use of this plugin.
+For an example see the provided [example config](#example-config)
+
 **Dependencies:**
 If you want to use the `:PerfHottest` or `:PerfHottestSelectionCallers` commands to jump to the hottest lines of code, you need to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
 For `:PerfHottestFunctionCallers` you will additionally need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
