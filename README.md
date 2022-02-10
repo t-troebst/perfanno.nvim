@@ -11,8 +11,6 @@ In addition, PerfAnno provides a Telescope finder that allows you to immediately
 
 ![demo](https://user-images.githubusercontent.com/15610942/153376301-d096ae61-e6a3-46f3-a8b1-305bd0007d7a.gif)
 
-**This demo might become slightly out of date as I continue working on the plugin!**
-
 ## Installation
 
 This plugin requires NeoVim 0.6 and was tested with perf 5.16.
