@@ -1,22 +1,22 @@
-# PerfAnno - Perf Profiling Annotations in NeoVim!
+# PerfAnno - Profiling Annotations and Call Graph Exploration in NeoVim!
 
 PerfAnno is a simple lua plugin for NeoVim that allows you to annotate your code with output from perf (or other profilers).
 It supports two different modes:
 
-* **callgraph:** Each line is annotated with the samples that occurred in that line *including* nested function calls. This requires that the perf.data file has been recorded with callgraph information.
-* **flat:** Each line is annotated with the samples that occurred in that line *without* nested function calls.
+* **call graph:** Each line is annotated with the samples that occurred in that line *including* nested function calls. This requires that the perf.data file has been recorded with call graph information.
+* **flat:** Each line is annotated with the samples that occurred in that line *without* nested function calls. This information is easier to get but obviously disables some useful features of this plugin.
 
-If the perf.data file has multiple events, then you can choose which event you want to use for annotation.
+If the perf.data file has multiple events, then you can choose switch between the event you want to use for annotation.
 In addition, PerfAnno provides a Telescope finder that allows you to immediately jump to the hottest lines in your code base or the hottest callers of a specific region of code (typically a function).
 
 ![demo](https://user-images.githubusercontent.com/15610942/153112464-ebfee5f2-11c3-4185-ad96-2cf8e7f7cd42.gif)
 
-**This demo is bound to be out of date compared to the current state of the plugin!**
+**This demo is currently out of date!**
 
 ## Installation
 
 This plugin requires NeoVim 0.6 and was tested with perf 5.16.
-The callgraph mode may require a relatively recent version of perf that supports folded output, though it should be easy to add support for older versions similar to how flamegraph does it.
+The call graph mode may require a relatively recent version of perf that supports folded output, though it should be easy to add support for older versions similar to how flamegraph does it.
 
 You should be able to install this plugin the same way you install other NeoVim lua plugins, e.g. via `use "t-troebst/perfanno.nvim"` in packer.
 After installing, you can initialize the plugin by calling:
@@ -104,8 +104,10 @@ The typical workflow uses the following commands:
 
 ## Future Goals
 
-* Allow annotating relative to a certain area (function, block, selection, file, etc.)
-* Add `vim.ui.select` fallback option if telescope is not installed
+This plugin is still under **active development** as I plan to add various other features:
+
+* Allow annotating relative to a selection or to the current function
 * Show annotations inside the telescope previewer
-* Add callgraph exploration via a very customized telescope finder
+* Add call graph exploration via a very customized telescope finder
+* Add `vim.ui.select` fallback option if telescope is not installed
 * Add support for other profilers: we only need stack traces with source line information
