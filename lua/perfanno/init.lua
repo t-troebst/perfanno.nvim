@@ -115,7 +115,7 @@ function M.toggle_annotations()
     end)
 end
 
-function should_annotate()
+local function should_annotate()
     return callgraph.is_loaded() and config.selected_event and callgraph.callgraphs[config.selected_event] and annotate.is_toggled()
 end
 
