@@ -93,12 +93,14 @@ function M.pick_event(cont)
     vim.ui.select(callgraph.events, {prompt = "Select event type to annotate: "}, function(event)
         config.selected_event = event or config.selected_event
 
-        if config.selected_event and cont then
+        if config.selected_event then
             if annotate.is_toggled() then
                 annotate.annotate()
             end
 
-            cont()
+            if cont then
+                cont()
+            end
         end
     end)
 end
