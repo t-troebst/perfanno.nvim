@@ -23,7 +23,7 @@ function M.setup(opts)
     vim.cmd[[command PerfToggleAnnotations :lua require("perfanno").toggle_annotations()]]
     vim.cmd[[command PerfCycleFormat :lua require("perfanno").cycle_format()]]
     vim.cmd[[command PerfHottest :lua require("perfanno").find_hottest()]]
-    vim.cmd[[command -range PerfHottestFunctionCallers :lua require("perfanno").find_hottest_function_callers()]]
+    vim.cmd[[command PerfHottestFunctionCallers :lua require("perfanno").find_hottest_function_callers()]]
     vim.cmd[[command -range PerfHottestSelectionCallers :lua require("perfanno").find_hottest_selection_callers()]]
 
     -- Setup automatic annotation of new buffers
