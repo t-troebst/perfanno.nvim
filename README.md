@@ -60,7 +60,7 @@ require("perfanno").setup {
 ```
 
 You will most likely want to set `line_highlights` and `vt_highlight` to appropriate highlights and set some keybindings to make use of this plugin.
-For an example see the provided [example config](#example-config).
+See the provided [example config](#example-config).
 
 **Dependencies:**
 If you want to use the commands that jump to the hottest lines of code, you need to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
@@ -79,6 +79,7 @@ local util = require("perfanno.util")
 local bgcolor = vim.fn.synIDattr(vim.fn.hlID("Normal"), "bg", "gui")
 
 perfanno.setup {
+    -- Creates a 10-step RGB color gradient beween bgcolor and "#CC3300"
     line_highlights = util.make_bg_highlights(bgcolor, "#CC3300", 10),
     vt_highlight = util.make_fg_highlight("#CC3300"),
 }
@@ -132,5 +133,5 @@ This plugin is still under **active development** and I plan to add various othe
 * Show annotations inside the telescope previewer
 * Add call graph exploration via a very customized telescope finder
 * Add `vim.ui.select` fallback option if telescope is not installed
-* Allow changing annotation format while preserving relative annotations
+* Improve the robustness of `:PerfCycleFormat` (e.g. it currently resets relative annotations and it doesn't work inside an active telescope finder)
 * Add support for other profilers: we only need stack traces with source line information
