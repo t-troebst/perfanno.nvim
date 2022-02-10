@@ -81,14 +81,14 @@ function M.annotate_range(bnr, line_begin, line_end, event)
     local max_count = 0
 
     for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
-        if linenr >= line_begin and linenr < line_end then
+        if linenr >= line_begin and linenr <= line_end then
             total_count = total_count + info.count
             max_count = math.max(max_count, info.count)
         end
     end
 
     for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
-        if linenr >= line_begin and linenr < line_end then
+        if linenr >= line_begin and linenr <= line_end then
             add_annotation(bnr, linenr, info.count, total_count, max_count)
         end
     end

@@ -84,7 +84,7 @@ function M.find_hottest_callers(file, line_begin, line_end, event, opts)
     local total_count = 0
 
     for linenr, node_info in pairs(callgraph.callgraphs[event].node_info[file]) do
-        if linenr >= line_begin and linenr < line_end then
+        if linenr >= line_begin and linenr <= line_end then
             table.insert(lines, {file, linenr})
             total_count = total_count + node_info.count
         end
