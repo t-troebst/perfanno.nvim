@@ -17,8 +17,10 @@ local defaults = {
         {percent = false, format = "%d", minimum = 1}
     },
 
-    -- Automatically annotate files after :PerfLoadFlat and :PerfLoadCallGraph
+    -- Automatically annotate all buffers after :PerfLoadFlat and :PerfLoadCallGraph
     annotate_after_load = true,
+    -- Automatically annoate newly opened buffers if information is available
+    annotate_on_open = true,
 
     -- Node type patterns used to find the function that surrounds the cursor
     ts_function_patterns = {

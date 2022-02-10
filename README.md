@@ -40,6 +40,8 @@ require("perfanno").setup {
 
     -- Automatically annotate files after :PerfLoadFlat and :PerfLoadCallGraph
     annotate_after_load = true,
+    -- Automatically annoate newly opened buffers if information is available
+    annotate_on_open = true,
 
     -- Node type patterns used to find the function that surrounds the cursor
     ts_function_patterns = {
@@ -61,8 +63,8 @@ You will most likely want to set `line_highlights` and `vt_highlight` to appropr
 For an example see the provided [example config](#example-config).
 
 **Dependencies:**
-If you want to use the `:PerfHottest` or `:PerfHottestSelectionCallers` commands to jump to the hottest lines of code, you need to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
-For `:PerfHottestFunctionCallers` you will additionally need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
+If you want to use the commands that jump to the hottest lines of code, you need to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
+For `:PerfAnnotateFunction` and `:PerfHottestCallersFunction` you will need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
 ## Example Config
 
@@ -85,32 +87,50 @@ local keymap = vim.api.nvim_set_keymap
 
 keymap("n", "<LEADER>plf", ":PerfLoadFlat<CR>", opts)
 keymap("n", "<LEADER>plg", ":PerfLoadCallGraph<CR>", opts)
-keymap("n", "<LEADER>pa", ":PerfAnnotate<CR>", opts)
+
 keymap("n", "<LEADER>pe", ":PerfPickEvent<CR>", opts)
 keymap("n", "<LEADER>pf", ":PerfCycleFormat<CR>", opts)
+
+keymap("n", "<LEADER>pa", ":PerfAnnotate<CR>", opts)
+keymap("n", "<LEADER>paf", ":PerfAnnotateFunction<CR>", opts)
+keymap("v", "<LEADER>pa", ":PerfAnnotateSelection<CR>", opts)
+
 keymap("n", "<LEADER>pt", ":PerfToggleAnnotations<CR>", opts)
+
 keymap("n", "<LEADER>ph", ":PerfHottest<CR>", opts)
-keymap("n", "<LEADER>pc", ":PerfHottestFunctionCallers<CR>", opts)
-keymap("v", "<LEADER>pc", ":PerfHottestSelectionCallers<CR>", opts)
+keymap("n", "<LEADER>pc", ":PerfHottestCallersFunction<CR>", opts)
+keymap("v", "<LEADER>pc", ":PerfHottestCallersSelection<CR>", opts)
 ```
 
 ## Workflow
 
 The typical workflow uses the following commands:
 
-* `:PerfLoadFlat` loads flat perf data or `:PerfLoadCallGraph` loads full call graph perf data. If there is no `perf.data` file in your working directory, you will be asked to locate one. If `annotate_after_load` is set this will immediately annotate all buffers.
-* `:PerfToggleAnnotations` toggles annotations in all buffers assuming they have been loaded.
+### Load profiling data
+* `:PerfLoadFlat` loads flat perf data or `:PerfLoadCallGraph` loads full call graph perf data.
+* If there is no `perf.data` file in your working directory, you will be asked to locate one. If `annotate_after_load` is set this will immediately annotate all buffers.
+
+### Control how annotations are displayed
+* `:PerfPickEvent` chooses a different event from the perf data to display. For example, you could use this to switch between cpu cycles, branch mispredictions, and cache misses.
 * `:PerfCycleFormat` allows you to toggle between the stored formats, by default this toggles between percentages and absolute counts.
-* `:PerfPickEvent` chooses a different event from the perf data.
+
+### Annotate
+* `:PerfAnnotate` annotates all currently open buffers.
+* `:PerfToggleAnnotations` toggles annotations in all buffers.
+* `:PerfAnnotateSelection` annotates code only in a given selection. Line highlights are shown relative to the total counts in that selection and if the current format is in percent, then the displayed percentages are also relative.
+* `:PerfAnnotateFunction` does the same as `:PerfAnnotateSelection` but selects the function that contains the cursor via treesitter.
+
+### Find hot lines
 * `:PerfHottest` opens a telescope finder with the hottest lines according to the current annotations.
-* `:PerfHottestSelectionCallers` opens a telescope finder with the hottest lines that lead directly to the currently selected lines. If you want to specifically select the current function, use `:PerfHottestFunctionCallers`.
+* `:PerfHottestCallersSelection` opens a telescope finder with the hottest lines that lead directly to the currently selected lines.
+* `:PerfHottestCallersFunction` works just like `:PerfHottestCallersSelection` but selects the function that contains the cursor via treesitter.
 
 ## Future Goals
 
-This plugin is still under **active development** as I plan to add various other features:
+This plugin is still under **active development** and I plan to add various other features:
 
-* Allow annotating relative to a selection or to the current function
 * Show annotations inside the telescope previewer
 * Add call graph exploration via a very customized telescope finder
 * Add `vim.ui.select` fallback option if telescope is not installed
+* Allow changing annotation format while preserving relative annotations
 * Add support for other profilers: we only need stack traces with source line information

@@ -15,19 +15,29 @@ local M = {}
 function M.setup(opts)
     config.load(opts)
 
-    -- TODO: switch to vim.api.nvim_add_user_command once its available
+    -- Commands for loading call graph information via perf
     vim.cmd[[command PerfLoadFlat :lua require("perfanno").load_perf_flat()]]
     vim.cmd[[command PerfLoadCallGraph :lua require("perfanno").load_perf_callgraph()]]
+
+    -- Commands that control what and how to annotate
     vim.cmd[[command PerfPickEvent :lua require("perfanno").pick_event()]]
+    vim.cmd[[command PerfCycleFormat :lua require("perfanno").cycle_format()]]
+
+    -- Commands that perform annotations
     vim.cmd[[command PerfAnnotate :lua require("perfanno").annotate()]]
     vim.cmd[[command PerfToggleAnnotations :lua require("perfanno").toggle_annotations()]]
-    vim.cmd[[command PerfCycleFormat :lua require("perfanno").cycle_format()]]
+    vim.cmd[[command PerfAnnotateFunction :lua require("perfanno").annotate_function()]]
+    vim.cmd[[command -range PerfAnnotateSelection :lua require("perfanno").annotate_selection()]]
+
+    -- Commands that find hot code lines
     vim.cmd[[command PerfHottest :lua require("perfanno").find_hottest()]]
-    vim.cmd[[command PerfHottestFunctionCallers :lua require("perfanno").find_hottest_function_callers()]]
-    vim.cmd[[command -range PerfHottestSelectionCallers :lua require("perfanno").find_hottest_selection_callers()]]
+    vim.cmd[[command PerfHottestCallersFunction :lua require("perfanno").find_hottest_function_callers()]]
+    vim.cmd[[command -range PerfHottestCallersSelection :lua require("perfanno").find_hottest_selection_callers()]]
 
     -- Setup automatic annotation of new buffers
-    vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
+    if config.annotate_on_open then
+        vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
+    end
 end
 
 local function get_perf_data(cont)
@@ -168,7 +178,34 @@ function M.find_hottest_selection_callers()
             local file = vim.fn.expand("%:p")
             local line_begin, _, line_end, _ = util.visual_selection_range()
 
-            telescope.find_hottest_callers(file, line_begin, line_end)
+            if line_begin and line_end then
+                telescope.find_hottest_callers(file, line_begin, line_end)
+            end
+        end
+    end)
+end
+
+function M.annotate_function()
+    M.with_event(function(event)
+        if event then
+            local file = vim.fn.expand("%:p")
+            local line_begin, line_end = treesitter.get_function_lines()
+
+            if line_begin and line_end then
+                annotate.annotate_range(nil, line_begin, line_end)
+            end
+        end
+    end)
+end
+
+function M.annotate_selection()
+    M.with_event(function(event)
+        if event then
+            local line_begin, _, line_end, _ = util.visual_selection_range()
+
+            if line_begin and line_end then
+                annotate.annotate_range(nil, line_begin, line_end)
+            end
         end
     end)
 end

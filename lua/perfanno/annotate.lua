@@ -68,6 +68,7 @@ function M.annotate_range(bnr, line_begin, line_end, event)
     event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
+    bnr = bnr or vim.api.nvim_get_current_buf()
     init_namespace(bnr)
 
     local file = vim.fn.expand("#" .. bnr .. ":p")
