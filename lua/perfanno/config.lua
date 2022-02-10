@@ -5,9 +5,18 @@ local defaults = {
     line_highlights = nil,
     vt_highlight = nil,
     formats = {{relative = true, format = "%.2f%%", minimum = 0.5}, {relative = false, format = "%d", minimum = 1}},
+
     annotate_after_load = true,
+
     selected_format = 1,
-    selected_event = nil
+    selected_event = nil,
+
+    ts_function_patterns = {
+        default = {
+            "function",
+            "method"
+        }
+    }
 }
 
 local M = vim.deepcopy(defaults)

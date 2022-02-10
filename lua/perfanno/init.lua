@@ -5,7 +5,10 @@ local parse_perf = require("perfanno.parse_perf")
 local annotate = require("perfanno.annotate")
 local util = require("perfanno.util")
 local config = require("perfanno.config")
+
+-- Optional dependencies
 local telescope = require("perfanno.telescope")
+local treesitter = require("perfanno.treesitter")
 
 local M = {}
 
@@ -20,7 +23,8 @@ function M.setup(opts)
     vim.cmd[[command PerfToggleAnnotations :lua require("perfanno").toggle_annotations()]]
     vim.cmd[[command PerfCycleFormat :lua require("perfanno").cycle_format()]]
     vim.cmd[[command PerfHottest :lua require("perfanno").find_hottest()]]
-    vim.cmd[[command PerfHottestCallers :lua require("perfanno").find_hottest_callers()]]
+    vim.cmd[[command -range PerfHottestFunctionCallers :lua require("perfanno").find_hottest_function_callers()]]
+    vim.cmd[[command -range PerfHottestSelectionCallers :lua require("perfanno").find_hottest_selection_callers()]]
 
     -- Setup automatic annotation of new buffers
     vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
@@ -145,7 +149,20 @@ function M.find_hottest()
     end)
 end
 
-function M.find_hottest_callers()
+function M.find_hottest_function_callers()
+    M.with_event(function(event)
+        if event then
+            local file = vim.fn.expand("%:p")
+            local line_begin, line_end = treesitter.get_function_lines()
+
+            if line_begin and line_end then
+                telescope.find_hottest_callers(file, line_begin, line_end)
+            end
+        end
+    end)
+end
+
+function M.find_hottest_selection_callers()
     M.with_event(function(event)
         if event then
             local file = vim.fn.expand("%:p")

@@ -1,6 +1,5 @@
 -- util.lua
 -- Defines various utility functions used throughout the plugin
-
 local M = {}
 
 function M.init(tab, key, value)

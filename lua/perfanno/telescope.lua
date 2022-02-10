@@ -1,8 +1,15 @@
 -- telescope.lua
 -- Telescope picker to find hottest lines in the code base
-local pickers = require("telescope.pickers")
-local finders = require("telescope.finders")
-local tconf = require("telescope.config").values
+
+local p_ok, pickers = pcall(require, "telescope.pickers")
+local f_ok, finders = pcall(require, "telescope.finders")
+local c_ok, tconf = pcall(require, "telescope.config")
+
+if not (p_ok and f_ok and c_ok) then
+    return
+end
+
+tconf = tconf.values
 
 local callgraph = require("perfanno.callgraph")
 local config = require("perfanno.config")

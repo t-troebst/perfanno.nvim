@@ -44,6 +44,7 @@ function M.annotate_buffer(bnr, event)
     event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
+    bnr = bnr or vim.api.nvim_get_current_buf()
     init_namespace(bnr)
 
     local file = vim.fn.expand("#" .. bnr .. ":p")
@@ -95,6 +96,8 @@ function M.annotate_range(bnr, line_begin, line_end, event)
 end
 
 function M.clear_buffer(bnr)
+    bnr = bnr or vim.api.nvim_get_current_buf()
+
     if namespaces[bnr] then
         vim.api.nvim_buf_clear_namespace(bnr, namespaces[bnr], 0, -1)
     end
