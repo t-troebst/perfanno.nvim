@@ -36,6 +36,7 @@ function M.setup(opts)
 
     -- Setup automatic annotation of new buffers
     if config.annotate_on_open then
+        vim.cmd[[autocmd BufRead * echomsg "test"]]
         vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
     end
 end
@@ -109,26 +110,18 @@ function M.with_event(cont)
     assert(callgraph.is_loaded(), "Callgraph must be loaded!")
 
     if config.selected_event and callgraph.callgraphs[config.selected_event] then
-        cont(config.selected_event)
+        cont()
     else
         M.pick_event(cont)
     end
 end
 
 function M.annotate()
-    M.with_event(function()
-        if config.selected_event then
-            annotate.annotate()
-        end
-    end)
+    M.with_event(annotate.annotate)
 end
 
 function M.toggle_annotations()
-    M.with_event(function()
-        if config.selected_event then
-            annotate.toggle_annotations()
-        end
-    end)
+    M.with_event(annotate.toggle_annotations)
 end
 
 local function should_annotate()
@@ -138,7 +131,7 @@ end
 function M.cycle_format()
     config.selected_format = config.selected_format + 1
 
-    if config.selected_format > table.getn(config.formats) then
+    if config.selected_format > #config.formats then
         config.selected_format = 1
     end
 
@@ -149,65 +142,52 @@ end
 
 function M.try_annotate_current()
     if should_annotate() then
-        annotate.annotate_buffer(vim.fn.bufnr("%"))
+        annotate.annotate_buffer()
     end
 end
 
 function M.find_hottest()
-    M.with_event(function(event)
-        if event then
-            telescope.find_hottest(event)
-        end
-    end)
+    M.with_event(telescope.find_hottest)
 end
 
 function M.find_hottest_function_callers()
-    M.with_event(function(event)
-        if event then
-            local file = vim.fn.expand("%:p")
-            local line_begin, line_end = treesitter.get_function_lines()
+    M.with_event(function()
+        local file = vim.fn.expand("%:p")
+        local line_begin, line_end = treesitter.get_function_lines()
 
-            if line_begin and line_end then
-                telescope.find_hottest_callers(file, line_begin, line_end)
-            end
+        if line_begin and line_end then
+            telescope.find_hottest_callers(file, line_begin, line_end)
         end
     end)
 end
 
 function M.find_hottest_selection_callers()
-    M.with_event(function(event)
-        if event then
-            local file = vim.fn.expand("%:p")
-            local line_begin, _, line_end, _ = util.visual_selection_range()
+    M.with_event(function()
+        local file = vim.fn.expand("%:p")
+        local line_begin, _, line_end, _ = util.visual_selection_range()
 
-            if line_begin and line_end then
-                telescope.find_hottest_callers(file, line_begin, line_end)
-            end
+        if line_begin and line_end then
+            telescope.find_hottest_callers(file, line_begin, line_end)
         end
     end)
 end
 
 function M.annotate_function()
-    M.with_event(function(event)
-        if event then
-            local file = vim.fn.expand("%:p")
-            local line_begin, line_end = treesitter.get_function_lines()
+    M.with_event(function()
+        local line_begin, line_end = treesitter.get_function_lines()
 
-            if line_begin and line_end then
-                annotate.annotate_range(nil, line_begin, line_end)
-            end
+        if line_begin and line_end then
+            annotate.annotate_range(nil, line_begin, line_end)
         end
     end)
 end
 
 function M.annotate_selection()
-    M.with_event(function(event)
-        if event then
-            local line_begin, _, line_end, _ = util.visual_selection_range()
+    M.with_event(function()
+        local line_begin, _, line_end, _ = util.visual_selection_range()
 
-            if line_begin and line_end then
-                annotate.annotate_range(nil, line_begin, line_end)
-            end
+        if line_begin and line_end then
+            annotate.annotate_range(nil, line_begin, line_end)
         end
     end)
 end

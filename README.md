@@ -1,17 +1,17 @@
-# PerfAnno - Profiling Annotations and Call Graph Exploration in NeoVim!
+# PerfAnno: Profiling Annotations and Call Graph Exploration in NeoVim!
 
-PerfAnno is a simple lua plugin for NeoVim that allows you to annotate your code with output from perf (or other profilers).
+PerfAnno is a simple lua plugin for NeoVim that allows you to annotate your code with output from perf or potentially other profilers.
 It supports two different modes:
 
 * **call graph:** Each line is annotated with the samples that occurred in that line *including* nested function calls. This requires that the perf.data file has been recorded with call graph information.
 * **flat:** Each line is annotated with the samples that occurred in that line *without* nested function calls. This information is easier to get but obviously disables some useful features of this plugin.
 
-If the perf.data file has multiple events, then you can choose switch between the event you want to use for annotation.
+If the perf.data file has multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
 In addition, PerfAnno provides a Telescope finder that allows you to immediately jump to the hottest lines in your code base or the hottest callers of a specific region of code (typically a function).
 
 ![demo](https://user-images.githubusercontent.com/15610942/153112464-ebfee5f2-11c3-4185-ad96-2cf8e7f7cd42.gif)
 
-**This demo is currently out of date!**
+**This demo might become slightly out of date as I continue working on the plugin!**
 
 ## Installation
 
@@ -108,30 +108,39 @@ keymap("v", "<LEADER>pc", ":PerfHottestCallersSelection<CR>", opts)
 The typical workflow uses the following commands:
 
 ### Load profiling data
-* `:PerfLoadFlat` loads flat perf data or `:PerfLoadCallGraph` loads full call graph perf data.
-* If there is no `perf.data` file in your working directory, you will be asked to locate one. If `annotate_after_load` is set this will immediately annotate all buffers.
+
+* `:PerfLoadFlat` loads flat perf data. Obviously you will not be able to find callers of functions in this mode.
+* `:PerfLoadCallGraph` loads full call graph perf data. This may take a while.
+
+If there is no `perf.data` file in your working directory, you will be asked to locate one. If `annotate_after_load` is set this will immediately annotate all buffers.
 
 ### Control how annotations are displayed
+
 * `:PerfPickEvent` chooses a different event from the perf data to display. For example, you could use this to switch between cpu cycles, branch mispredictions, and cache misses.
 * `:PerfCycleFormat` allows you to toggle between the stored formats, by default this toggles between percentages and absolute counts.
 
 ### Annotate
+
 * `:PerfAnnotate` annotates all currently open buffers.
 * `:PerfToggleAnnotations` toggles annotations in all buffers.
 * `:PerfAnnotateSelection` annotates code only in a given selection. Line highlights are shown relative to the total counts in that selection and if the current format is in percent, then the displayed percentages are also relative.
 * `:PerfAnnotateFunction` does the same as `:PerfAnnotateSelection` but selects the function that contains the cursor via treesitter.
 
+If there is more than one event that was loaded, then you will be asked to pick one before annotations can be displayed.
+
 ### Find hot lines
+
 * `:PerfHottest` opens a telescope finder with the hottest lines according to the current annotations.
 * `:PerfHottestCallersSelection` opens a telescope finder with the hottest lines that lead directly to the currently selected lines.
 * `:PerfHottestCallersFunction` works just like `:PerfHottestCallersSelection` but selects the function that contains the cursor via treesitter.
 
 ## Future Goals
 
-This plugin is still under **active development** and I plan to add various other features:
+This plugin is still under **active development** and I am working on several features and fixes:
 
 * Show annotations inside the telescope previewer
 * Add call graph exploration via a very customized telescope finder
 * Add `vim.ui.select` fallback option if telescope is not installed
-* Improve the robustness of `:PerfCycleFormat` (e.g. it currently resets relative annotations and it doesn't work inside an active telescope finder)
-* Add support for other profilers: we only need stack traces with source line information
+* Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder)
+* Improve documentation of the basic functions exported by the plugin
+* And finally: add support for other profilers or at least add documentation of how to do so

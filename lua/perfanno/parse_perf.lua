@@ -4,11 +4,15 @@
 local M = {}
 
 -- Execute cmd and return the stdout result
-local function get_command_output(cmd)
+local function get_command_output(cmd, silent)
+    if silent then
+        cmd = cmd .. " 2>/dev/null"
+    end
+
     local data_file = assert(io.popen(cmd, "r"))
     data_file:flush()
     local output = data_file:read("*all")
-    data_file:close() -- TODO: use return code
+    data_file:close()
 
     return output
 end
@@ -17,7 +21,7 @@ end
 function M.perf_flat(perf_data)
     local esc = vim.fn.fnameescape(perf_data)
     local cmd = "perf report -g none -F sample,srcline --stdio --full-source-path -i " .. esc
-    local raw_data = get_command_output(cmd)
+    local raw_data = get_command_output(cmd, true)
 
     local result = {}
     local current_event
@@ -44,7 +48,7 @@ end
 function M.perf_callgraph(perf_data)
     local esc = vim.fn.fnameescape(perf_data)
     local cmd = "perf report -g folded,0,caller,srcline,branch,count --no-children --full-source-path --stdio -i " .. esc
-    local raw_data = get_command_output(cmd)
+    local raw_data = get_command_output(cmd, true)
 
     local result = {}
     local current_event
