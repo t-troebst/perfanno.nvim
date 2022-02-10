@@ -2,41 +2,30 @@
 -- Performs source code annotation according to the loaded callgraph
 
 local callgraph = require("perfanno.callgraph")
+local config = require("perfanno.config")
 
 local M = {}
 
 local namespaces = {}
 
-function M.format_annotation(count, total, opts)
-    if opts.numbers == "percent" then
-        if count / total * 100 >= opts.minimum then
-            return string.format(opts.format, count / total * 100)
-        end
-    else
-        if count >= opts.minimum then
-            return string.format(opts.format, count)
-        end
-    end
-end
-
-local function add_annotation(bnr, linenr, count, total_count, max_count, opts)
-    local fmt = M.format_annotation(count, total_count, opts)
+local function add_annotation(bnr, linenr, count, total_count, max_count)
+    local fmt = config.format(count, total_count)
 
     if not fmt then
         return
     end
 
-    if opts.highlights then
-        local i = math.floor(#opts.highlights * count / max_count + 0.5)
+    if config.line_highlights then
+        local i = math.floor(#config.line_highlights * count / max_count + 0.5)
 
         if i > 0 then
-            vim.api.nvim_buf_add_highlight(bnr, namespaces[bnr], opts.highlights[i], linenr - 1, 0, -1)
+            vim.api.nvim_buf_add_highlight(bnr, namespaces[bnr], config.line_highlights[i], linenr - 1, 0, -1)
         end
     end
 
-    if opts.virtual_text then
+    if config.vt_highlight then
         local vopts = {
-            virt_text = {{fmt, opts.virtual_text.highlight}},
+            virt_text = {{fmt, config.vt_highlight}},
             virt_text_pos = "eol"
         }
 
@@ -50,8 +39,9 @@ local function init_namespace(bnr)
     end
 end
 
-function M.annotate_buffer(bnr, event, opts)
+function M.annotate_buffer(bnr, event)
     assert(callgraph.is_loaded(), "Callgraph must be loaded for annotations!")
+    event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
     init_namespace(bnr)
@@ -68,12 +58,13 @@ function M.annotate_buffer(bnr, event, opts)
     local max_count = callgraph.callgraphs[event].max_count
 
     for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
-        add_annotation(bnr, linenr, info.count, total_count, max_count, opts)
+        add_annotation(bnr, linenr, info.count, total_count, max_count)
     end
 end
 
-function M.annotate_range(bnr, event, line_begin, line_end, opts)
+function M.annotate_range(bnr, line_begin, line_end, event)
     assert(callgraph.is_loaded(), "Callgraph must be loaded for annotations!")
+    event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
     init_namespace(bnr)
@@ -86,24 +77,19 @@ function M.annotate_range(bnr, event, line_begin, line_end, opts)
 
     M.clear_buffer(bnr)
 
-    local total_count = callgraph.callgraphs[event].total_count
-    local max_count = callgraph.callgraphs[event].max_count
+    local total_count = 0
+    local max_count = 0
 
-    if opts.relative then
-        total_count = 0
-        max_count = 0
-
-        for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
-            if linenr >= line_begin and linenr < line_end then
-                total_count = total_count + info.count
-                max_count = math.max(max_count, info.count)
-            end
+    for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
+        if linenr >= line_begin and linenr < line_end then
+            total_count = total_count + info.count
+            max_count = math.max(max_count, info.count)
         end
     end
 
     for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
         if linenr >= line_begin and linenr < line_end then
-            add_annotation(bnr, linenr, info.count, total_count, max_count, opts)
+            add_annotation(bnr, linenr, info.count, total_count, max_count)
         end
     end
 end
@@ -116,14 +102,11 @@ end
 
 local toggled = false
 
-function M.annotate(event, opts)
-    assert(callgraph.is_loaded(), "Callgraph must be loaded for annotations!")
-    assert(callgraph.callgraphs[event], "Invalid event!")
-
+function M.annotate(event)
     toggled = true
 
     for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
-        M.annotate_buffer(bnr, event, opts)
+        M.annotate_buffer(bnr, event)
     end
 end
 
@@ -135,11 +118,11 @@ function M.clear()
     end
 end
 
-function M.toggle_annotations(event, opts)
+function M.toggle_annotations(event)
     if toggled then
         M.clear()
     else
-        M.annotate(event, opts)
+        M.annotate(event)
     end
 end
 

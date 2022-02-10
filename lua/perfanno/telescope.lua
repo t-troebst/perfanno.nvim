@@ -2,14 +2,14 @@
 -- Telescope picker to find hottest lines in the code base
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
-local conf = require("telescope.config").values
+local tconf = require("telescope.config").values
 
 local callgraph = require("perfanno.callgraph")
-local annotate = require("perfanno.annotate")
+local config = require("perfanno.config")
 
 local M = {}
 
-local function hottest_table(nodes, total_count, event, anno_opts)
+local function hottest_table(nodes, total_count)
     local opts = {}
 
     opts.results = nodes
@@ -18,9 +18,8 @@ local function hottest_table(nodes, total_count, event, anno_opts)
         return e1[3] > e2[3]
     end)
 
-
     opts.entry_maker = function(entry)
-        local fmt = annotate.format_annotation(entry[3], total_count, anno_opts)
+        local fmt = config.format(entry[3], total_count)
 
         if not fmt then
             return
@@ -53,8 +52,9 @@ local function hottest_table(nodes, total_count, event, anno_opts)
 end
 
 
-function M.find_hottest(event, anno_opts, telescope_opts)
+function M.find_hottest(event, opts)
     assert(callgraph.is_loaded(), "Callgraph is not loaded!")
+    event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
     local nodes = {}
@@ -65,18 +65,19 @@ function M.find_hottest(event, anno_opts, telescope_opts)
         end
     end
 
-    telescope_opts = telescope_opts or {}
+    opts = opts or {}
 
-    pickers.new(telescope_opts, {
+    pickers.new(opts, {
         prompt_title = "",
-        finder = hottest_table(nodes, callgraph.callgraphs[event].total_count, event, anno_opts),
-        sorter = conf.file_sorter(telescope_opts),
-        previewer = conf.grep_previewer(telescope_opts)
+        finder = hottest_table(nodes, callgraph.callgraphs[event].total_count),
+        sorter = tconf.file_sorter(opts),
+        previewer = tconf.grep_previewer(opts)
     }):find()
 end
 
-function M.find_hottest_callers(file, line_begin, line_end, event, anno_opts, telescope_opts)
+function M.find_hottest_callers(file, line_begin, line_end, event, opts)
     assert(callgraph.is_loaded(), "Callgraph is not loaded!")
+    event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
     local lines = {}
@@ -98,13 +99,13 @@ function M.find_hottest_callers(file, line_begin, line_end, event, anno_opts, te
         end
     end
 
-    telescope_opts = telescope_opts or {}
+    opts = opts or {}
 
-    pickers.new(telescope_opts, {
+    pickers.new(opts, {
         prompt_title = "",
-        finder = hottest_table(nodes, total_count, event, anno_opts),
-        sorter = conf.file_sorter(telescope_opts),
-        previewer = conf.grep_previewer(telescope_opts)
+        finder = hottest_table(nodes, total_count),
+        sorter = tconf.file_sorter(opts),
+        previewer = tconf.grep_previewer(opts)
     }):find()
 end
 
