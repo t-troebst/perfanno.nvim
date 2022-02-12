@@ -139,8 +139,7 @@ If there is more than one event that was loaded, then you will be asked to pick 
 This plugin is still under **active development** and I am working on several features and fixes:
 
 * Show annotations inside the telescope previewer
-* Add call graph exploration via a very customized telescope finder
+* Add some kind of tree-based call graph exploration
 * Add `vim.ui.select` fallback option if telescope is not installed
 * Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder)
-* Improve documentation of the basic functions exported by the plugin
-* And finally: add support for other profilers or at least add documentation of how to do so
+* Improve (or rather add...) documentation
