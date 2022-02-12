@@ -8,7 +8,7 @@ local treesitter = require("perfanno.treesitter")
 
 local M = {}
 
-local namespaces = {}
+local namespace = vim.api.nvim_create_namespace("perfanno.annotations")
 
 local function add_annotation(bnr, linenr, count, total_count, max_count)
     local fmt = config.format(count, total_count)
@@ -21,7 +21,7 @@ local function add_annotation(bnr, linenr, count, total_count, max_count)
         local i = util.round(#config.line_highlights * count / max_count)
 
         if i > 0 then
-            vim.api.nvim_buf_add_highlight(bnr, namespaces[bnr], config.line_highlights[i], linenr - 1, 0, -1)
+            vim.api.nvim_buf_add_highlight(bnr, namespace, config.line_highlights[i], linenr - 1, 0, -1)
         end
     end
 
@@ -31,13 +31,7 @@ local function add_annotation(bnr, linenr, count, total_count, max_count)
             virt_text_pos = "eol"
         }
 
-        vim.api.nvim_buf_set_extmark(bnr, namespaces[bnr], linenr - 1, 0, vopts)
-    end
-end
-
-local function init_namespace(bnr)
-    if not namespaces[bnr] then
-        namespaces[bnr] = vim.api.nvim_create_namespace("perfanno_" .. bnr)
+        vim.api.nvim_buf_set_extmark(bnr, namespace, linenr - 1, 0, vopts)
     end
 end
 
@@ -47,7 +41,6 @@ function M.annotate_buffer(bnr, event)
     assert(callgraph.callgraphs[event], "Invalid event!")
 
     bnr = bnr or vim.api.nvim_get_current_buf()
-    init_namespace(bnr)
 
     local file = vim.fn.expand("#" .. bnr .. ":p"):gsub("//", "/")
 
@@ -72,7 +65,6 @@ function M.annotate_range(bnr, line_begin, line_end, event)
     assert(callgraph.callgraphs[event], "Invalid event!")
 
     bnr = bnr or vim.api.nvim_get_current_buf()
-    init_namespace(bnr)
 
     local file = vim.fn.expand("#" .. bnr .. ":p"):gsub("//", "/")
 
@@ -117,10 +109,7 @@ end
 
 function M.clear_buffer(bnr)
     bnr = bnr or vim.api.nvim_get_current_buf()
-
-    if namespaces[bnr] then
-        vim.api.nvim_buf_clear_namespace(bnr, namespaces[bnr], 0, -1)
-    end
+    vim.api.nvim_buf_clear_namespace(bnr, namespace, 0, -1)
 end
 
 local toggled = false
