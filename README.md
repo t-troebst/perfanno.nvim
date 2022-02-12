@@ -40,6 +40,8 @@ require("perfanno").setup {
     annotate_after_load = true,
     -- Automatically annoate newly opened buffers if information is available
     annotate_on_open = true,
+    -- Use telescope for hottest line selections if possible
+    use_telescope = pcall(require, "telescope"),
 
     -- Node type patterns used to find the function that surrounds the cursor
     ts_function_patterns = {
@@ -57,6 +59,7 @@ require("perfanno").setup {
 
 ```
 
+These are the default settings, so this is equivalent to `require("perfanno").setup()`.
 You will most likely want to set `line_highlights` and `vt_highlight` to appropriate highlights and set some keybindings to make use of this plugin.
 See the provided [example config](#example-config).
 
