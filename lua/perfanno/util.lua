@@ -14,7 +14,7 @@ end
 
 function M.pairwise(list)
     local i = 0
-    local n = table.getn(list) - 1
+    local n = #list - 1
 
     return function()
         i = i + 1
@@ -95,7 +95,7 @@ function M.rgb_color_gradient(start, stop, num)
     local r_start, g_start, b_start = unpack(start)
     local r_stop, g_stop, b_stop = unpack(stop)
 
-    for i=1,num do
+    for i = 1, num do
         local color = {r_start + (r_stop - r_start) * (i - 1) / (num - 1),
                        g_start + (g_stop - g_start) * (i - 1) / (num - 1),
                        b_start + (b_stop - b_start) * (i - 1) / (num - 1)}

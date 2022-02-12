@@ -1,4 +1,3 @@
--- config.lua
 -- Stores the global configuration options of this plugin
 
 local defaults = {
@@ -21,6 +20,8 @@ local defaults = {
     annotate_after_load = true,
     -- Automatically annoate newly opened buffers if information is available
     annotate_on_open = true,
+    -- Uses telescope for hottest line selections if possible
+    use_telescope = pcall(require, "telescope"),
 
     -- Node type patterns used to find the function that surrounds the cursor
     ts_function_patterns = {

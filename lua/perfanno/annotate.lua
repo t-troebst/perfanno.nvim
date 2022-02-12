@@ -3,6 +3,8 @@
 
 local callgraph = require("perfanno.callgraph")
 local config = require("perfanno.config")
+local util = require("perfanno.util")
+local treesitter = require("perfanno.treesitter")
 
 local M = {}
 
@@ -16,7 +18,7 @@ local function add_annotation(bnr, linenr, count, total_count, max_count)
     end
 
     if config.line_highlights then
-        local i = math.floor(#config.line_highlights * count / max_count + 0.5)
+        local i = util.round(#config.line_highlights * count / max_count)
 
         if i > 0 then
             vim.api.nvim_buf_add_highlight(bnr, namespaces[bnr], config.line_highlights[i], linenr - 1, 0, -1)
@@ -97,6 +99,22 @@ function M.annotate_range(bnr, line_begin, line_end, event)
     end
 end
 
+function M.annotate_function(event)
+    local line_begin, line_end = treesitter.get_function_lines()
+
+    if line_begin and line_end then
+        M.annotate_range(nil, line_begin, line_end, event)
+    end
+end
+
+function M.annotate_selection(event)
+    local line_begin, _, line_end, _ = util.visual_selection_range()
+
+    if line_begin and line_end then
+        M.annotate_range(nil, line_begin, line_end, event)
+    end
+end
+
 function M.clear_buffer(bnr)
     bnr = bnr or vim.api.nvim_get_current_buf()
 
@@ -133,6 +151,15 @@ end
 
 function M.is_toggled()
     return toggled
+end
+
+function M.should_annotate()
+    if callgraph.is_loaded() and config.selected_event
+        and callgraph.callgraphs[config.selected_event] and toggled then
+        return true
+    end
+
+    return false
 end
 
 return M

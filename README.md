@@ -96,7 +96,7 @@ keymap("v", "<LEADER>pa", ":PerfAnnotateSelection<CR>", opts)
 
 keymap("n", "<LEADER>pt", ":PerfToggleAnnotations<CR>", opts)
 
-keymap("n", "<LEADER>ph", ":PerfHottest<CR>", opts)
+keymap("n", "<LEADER>ph", ":PerfHottestLines<CR>", opts)
 keymap("n", "<LEADER>pc", ":PerfHottestCallersFunction<CR>", opts)
 keymap("v", "<LEADER>pc", ":PerfHottestCallersSelection<CR>", opts)
 ```
@@ -128,7 +128,7 @@ If there is more than one event that was loaded, then you will be asked to pick 
 
 ### Find hot lines
 
-* `:PerfHottest` opens a telescope finder with the hottest lines according to the current annotations.
+* `:PerfHottestLines` opens a telescope finder with the hottest lines according to the current annotations.
 * `:PerfHottestCallersSelection` opens a telescope finder with the hottest lines that lead directly to the currently selected lines.
 * `:PerfHottestCallersFunction` works just like `:PerfHottestCallersSelection` but selects the function that contains the cursor via treesitter.
 
@@ -138,6 +138,5 @@ This plugin is still under **active development** and I am working on several fe
 
 * Show annotations inside the telescope previewer
 * Add some kind of tree-based call graph exploration
-* Add `vim.ui.select` fallback option if telescope is not installed
 * Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder)
 * Improve (or rather add...) documentation

@@ -112,7 +112,11 @@ function M.load_traces(traces)
 end
 
 function M.is_loaded()
-    return M.callgraphs ~= nil and M.events ~= nil and #M.events > 0
+    if M.callgraphs and M.events and #M.events > 0 then
+        return true
+    end
+
+    return false
 end
 
 return M

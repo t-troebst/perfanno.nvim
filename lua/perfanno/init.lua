@@ -1,14 +1,10 @@
--- init.lua
 -- Main entry point, defines nice wrappers for usability
+
 local callgraph = require("perfanno.callgraph")
 local parse_perf = require("perfanno.parse_perf")
 local annotate = require("perfanno.annotate")
-local util = require("perfanno.util")
 local config = require("perfanno.config")
-
--- Optional dependencies
-local telescope = require("perfanno.telescope")
-local treesitter = require("perfanno.treesitter")
+local finder -- either telescope or vim.ui.select
 
 local M = {}
 
@@ -30,13 +26,19 @@ function M.setup(opts)
     vim.cmd[[command -range PerfAnnotateSelection :lua require("perfanno").annotate_selection()]]
 
     -- Commands that find hot code lines
-    vim.cmd[[command PerfHottest :lua require("perfanno").find_hottest()]]
-    vim.cmd[[command PerfHottestCallersFunction :lua require("perfanno").find_hottest_function_callers()]]
-    vim.cmd[[command -range PerfHottestCallersSelection :lua require("perfanno").find_hottest_selection_callers()]]
+    vim.cmd[[command PerfHottestLines :lua require("perfanno").find_hottest_lines()]]
+    vim.cmd[[command PerfHottestCallersFunction :lua require("perfanno").find_hottest_callers_function()]]
+    vim.cmd[[command -range PerfHottestCallersSelection :lua require("perfanno").find_hottest_callers_selection()]]
+
+    if config.use_telescope then
+        finder = require("telescope").extensions.perfanno
+        -- Should we load this extension for the user?
+    else
+        finder = require("perfanno.find_hottest")
+    end
 
     -- Setup automatic annotation of new buffers
     if config.annotate_on_open then
-        vim.cmd[[autocmd BufRead * echomsg "test"]]
         vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
     end
 end
@@ -87,7 +89,6 @@ function M.load_perf_callgraph()
     end)
 end
 
-
 function M.pick_event(cont)
     assert(callgraph.is_loaded(), "Callgraph must be loaded before we can pick an event!")
 
@@ -124,8 +125,12 @@ function M.toggle_annotations()
     M.with_event(annotate.toggle_annotations)
 end
 
-local function should_annotate()
-    return callgraph.is_loaded() and config.selected_event and callgraph.callgraphs[config.selected_event] and annotate.is_toggled()
+function M.annotate_function()
+    M.with_event(annotate.annotate_function)
+end
+
+function M.annotate_selection()
+    M.with_event(annotate.annotate_selection)
 end
 
 function M.cycle_format()
@@ -135,61 +140,27 @@ function M.cycle_format()
         config.selected_format = 1
     end
 
-    if should_annotate() then
+    if annotate.should_annotate() then
         annotate.annotate()
     end
 end
 
 function M.try_annotate_current()
-    if should_annotate() then
+    if annotate.should_annotate() then
         annotate.annotate_buffer()
     end
 end
 
-function M.find_hottest()
-    M.with_event(telescope.find_hottest)
+function M.find_hottest_lines()
+    M.with_event(finder.find_hottest_lines)
 end
 
-function M.find_hottest_function_callers()
-    M.with_event(function()
-        local file = vim.fn.expand("%:p")
-        local line_begin, line_end = treesitter.get_function_lines()
-
-        if line_begin and line_end then
-            telescope.find_hottest_callers(file, line_begin, line_end)
-        end
-    end)
+function M.find_hottest_callers_function()
+    M.with_event(finder.find_hottest_callers_function)
 end
 
-function M.find_hottest_selection_callers()
-    M.with_event(function()
-        local file = vim.fn.expand("%:p")
-        local line_begin, _, line_end, _ = util.visual_selection_range()
-
-        if line_begin and line_end then
-            telescope.find_hottest_callers(file, line_begin, line_end)
-        end
-    end)
-end
-
-function M.annotate_function()
-    M.with_event(function()
-        local line_begin, line_end = treesitter.get_function_lines()
-
-        if line_begin and line_end then
-            annotate.annotate_range(nil, line_begin, line_end)
-        end
-    end)
-end
-
-function M.annotate_selection()
-    M.with_event(function()
-        local line_begin, _, line_end, _ = util.visual_selection_range()
-
-        if line_begin and line_end then
-            annotate.annotate_range(nil, line_begin, line_end)
-        end
-    end)
+function M.find_hottest_callers_selection()
+    M.with_event(finder.find_hottest_callers_selection)
 end
 
 return M

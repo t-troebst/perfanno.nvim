@@ -1,25 +1,19 @@
--- telescope.lua
 -- Telescope picker to find hottest lines in the code base
 
-local p_ok, pickers = pcall(require, "telescope.pickers")
-local f_ok, finders = pcall(require, "telescope.finders")
-local c_ok, tconf = pcall(require, "telescope.config")
 
-if not (p_ok and f_ok and c_ok) then
-    return
-end
+local telescope = require("telescope")
+local pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
+local tconf = require("telescope.config").values
 
-tconf = tconf.values
-
+local perfanno = require("perfanno")
 local callgraph = require("perfanno.callgraph")
 local config = require("perfanno.config")
-
-local M = {}
+local treesitter = require("perfanno.treesitter")
+local util = require("perfanno.util")
 
 local function hottest_table(nodes, total_count)
-    local opts = {}
-
-    opts.results = nodes
+    local opts = {results = nodes}
 
     table.sort(opts.results, function(e1, e2)
         return e1[3] > e2[3]
@@ -59,8 +53,7 @@ local function hottest_table(nodes, total_count)
 end
 
 
-function M.find_hottest(event, opts)
-    assert(callgraph.is_loaded(), "Callgraph is not loaded!")
+local function find_hottest_lines(event)
     event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
@@ -72,18 +65,16 @@ function M.find_hottest(event, opts)
         end
     end
 
-    opts = opts or {}
-
-    pickers.new(opts, {
+    pickers.new({}, {
         prompt_title = "",
         finder = hottest_table(nodes, callgraph.callgraphs[event].total_count),
-        sorter = tconf.file_sorter(opts),
-        previewer = tconf.grep_previewer(opts)
+        sorter = tconf.file_sorter{},
+        previewer = tconf.grep_previewer{}
     }):find()
 end
 
-function M.find_hottest_callers(file, line_begin, line_end, event, opts)
-    assert(callgraph.is_loaded(), "Callgraph is not loaded!")
+-- TODO: there is some unnecessary code duplication here with perfanno.find_hottest
+local function find_hottest_callers(file, line_begin, line_end, event)
     event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
@@ -106,14 +97,44 @@ function M.find_hottest_callers(file, line_begin, line_end, event, opts)
         end
     end
 
-    opts = opts or {}
-
-    pickers.new(opts, {
+    pickers.new({}, {
         prompt_title = "",
         finder = hottest_table(nodes, total_count),
-        sorter = tconf.file_sorter(opts),
-        previewer = tconf.grep_previewer(opts)
+        sorter = tconf.file_sorter{},
+        previewer = tconf.grep_previewer{}
     }):find()
 end
 
-return M
+local function find_hottest()
+    perfanno.with_event(find_hottest_lines)
+end
+
+local function find_hottest_callers_function()
+    perfanno.with_event(function()
+        local file = vim.fn.expand("%:p")
+        local line_begin, line_end = treesitter.get_function_lines()
+
+        if line_begin and line_end then
+            find_hottest_callers(file, line_begin, line_end)
+        end
+    end)
+end
+
+local function find_hottest_callers_selection()
+    perfanno.with_event(function()
+        local file = vim.fn.expand("%:p")
+        local line_begin, _, line_end, _ = util.visual_selection_range()
+
+        if line_begin and line_end then
+            find_hottest_callers(file, line_begin, line_end)
+        end
+    end)
+end
+
+return telescope.register_extension {
+    exports = {
+        find_hottest_lines = find_hottest,
+        find_hottest_callers_function = find_hottest_callers_function,
+        find_hottest_callers_selection = find_hottest_callers_selection,
+    }
+}
