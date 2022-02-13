@@ -189,7 +189,7 @@ require("perfanno").load_traces(traces)
 
 A stack trace is represented by a `count` which tells us how often that exact trace occurred and a list of `frames`.
 Each stack frame should either start with `/` and have the format `/full/file/path.cpp:linenum` or it can be anything else.
-This format is very similar to what the popular `flamegraph` tool expects, so it should not be too hard to generate this type of information with most profilers.
+This format is very similar to what the popular flamegraph tool expects, so it should not be too hard to generate this type of information with most profilers.
 
 
 Note: The file paths in the traces should be full, unescaped paths in the canonical format, i.e. `/full/file path/to/source.cpp:35` instead of `/full/file\ path//to/../to/source.cpp:35`.
@@ -200,4 +200,4 @@ Note: The file paths in the traces should be full, unescaped paths in the canoni
 * Add some kind of tree-based call graph exploration.
 * Add support for `:FindHottestCallers` with increased depth.
 * Add `:FindHottestCallees` which is essentially `:FindHottestLines` but relative to stack traces that go through a certain selection.
-
+* Perf can take quite a while to generate reports from large files, maybe add some kind of caching?
