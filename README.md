@@ -120,7 +120,21 @@ keymap("v", "<LEADER>pc", ":PerfHottestCallersSelection<CR>", opts)
 
 ## Workflow
 
-The typical workflow uses the following commands:
+In order to use this plugin, you will need to generate accurate profiling information with perf, ideally with call graph information.
+You will want to compile your program with debug information and then run:
+
+`perf record --call-graph dwarf {program}`
+
+This will then generate a `perf.data` file that can be used by this plugin.
+From there you can use the commands shown [below](#commands).
+If the `dwarf` option creates files that are too large or take too long to process, you may also want to try:
+
+`perf record --call-graph fp {program}`
+
+However, this requires that your program and all libraries have been compiled with `--fno-omit-frame-pointer` and you may find that the line numbers are slightly off.
+For more information, see the documentation of perf.
+
+## Commands
 
 ### Load profiling data
 
