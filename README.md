@@ -71,7 +71,7 @@ See the provided [example config](#example-config).
 
 **Dependencies:**
 If you want to use the commands that jump to the hottest lines of code, you will probably want to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
-Otherwise (or if you set `use_telescope = false` during setup, the plugin will fall back to `vim.ui.select` instead.
+Otherwise (or if you explicitly disable telescope during setup), the plugin will fall back to `vim.ui.select` instead.
 For `:PerfAnnotateFunction` and `:PerfHottestCallersFunction` you will need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
 ## Example Config
