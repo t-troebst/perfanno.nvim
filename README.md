@@ -80,7 +80,6 @@ The following config sets the highlights to a nice RGB color gradient between th
 It also sets convenient keybindings for all of the standard commands.
 
 ```lua
-
 local perfanno = require("perfanno")
 local util = require("perfanno.util")
 

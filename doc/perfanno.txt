@@ -1,11 +1,299 @@
-================================================================================
-                                                                 *perfanno.nvim*
+*perfanno.txt*       shows profiling annotations and allows callgraph exploration
 
-perfanno.nvim is a plugin that allows annotating source files with profiling
-information collected with perf.
+                 ____            __   _                           ~
+                |  _ \ ___ _ __ / _| / \   _ __  _ __   ___       ~
+                | |_) / _ \ '__| |_ / _ \ | '_ \| '_ \ / _ \      ~
+                |  __/  __/ |  |  _/ ___ \| | | | | | | (_) |     ~
+                |_|   \___|_|  |_|/_/   \_\_| |_|_| |_|\___/      ~
+                                                              
 
-  :h PerfAnnoHelloWorld
+          Annotate your code with profiling information and jump to
+                     the hottest lines in your code base!
 
-PerfAnnoHelloWorld                                          *PerfAnnoHelloWorld*
-    Prints "hello world"
-================================================================================
+
+==============================================================================
+CONTENTS                                                     *perfanno-contents*
+
+  Introduction ......................................... |perfanno-introduction|
+  Installation ......................................... |perfanno-installation|
+  Configuration .............................................. |perfanno-config|
+  Commands ................................................. |perfanno-commands|
+  Extensions ............................................. |perfanno-extensions|
+  License ................................................... |perfanno-license|
+
+==============================================================================
+INTRODUCTION                                             *perfanno-introduction*
+
+PerfAnno is a simple lua plugin for NeoVim which stores call graph information
+obtained from a profiler like Perf and allows you to explore it in an
+intuitive and interactive way.
+
+As a basic functionality it annotates your code, displaying what percentage of
+time (or other events) is spent in individual lines of code. See
+|:PerfAnnotate| and related commands. You can also jump directly to the
+hottest lines in your code base via |:PerfFindHottestLines|.
+
+If stack traces are available, each line is annotated with the time spent in
+that line including any function calls. Moreover, you will be able to to jump
+to the hottest callers of any piece of code or any function. See
+|:PerfFindHottestCallersFunction| and |:PerfHottestCallersSelection|.
+
+==============================================================================
+INSTALLATION                                             *perfanno-installation*
+
+This plugin requires NeoVim 0.6 and was tested with perf 5.16.
+If you wish to load a call graph with stack traces, you may need a relatively
+recent version of perf.
+
+You should be able to install this plugin the same way you install other
+NeoVim lua plugins, e.g. via `use "t-troebst/perfanno.nvim"` in packer. After
+installing, you should initialize the plugin by calling
+>
+    require("perfanno").setup{}
+<
+This will initialize PerfAnno with the default options detailed in
+|perfanno-config|. However, you will at the very least need to set highlights
+for the annotations, for example by using the |perfanno-example-config|.
+
+Dependencies~
+
+If you want to use the commands that jump to the hottest lines of code, you
+will probably want to have `telescope.nvim` installed, otherwise the plugin
+will fall back to |vim.ui.select|.
+
+If you want to use |:PerfAnnotateFunction| or |:PerfHottestCallersFunction|
+then you will also need `nvim-treesitter`.
+
+==============================================================================
+CONFIGURATION                                                  *perfanno-config*
+
+The plugin can be configured with `require("perfanno").setup`. A complete
+configuration is given below.
+>
+    require("perfanno").setup {
+        -- List of highlights that will be used to highlight hot lines
+        -- Set this to nil to disable highlighting
+        line_highlights = nil,
+        -- Highlight used for virtual text annotations
+        -- Set this to nil to disable virtual text annotations
+        vt_highlight = nil,
+
+        -- Annotation formats that can be cycled between via :PerfCycleFormat
+        --  percent: controls whether to display relative or absolute numbers
+        --  format: the format string that will be used to display counts
+        --  minimum: value below which lines will not be annotated
+        -- Note: this also controls what shows up in the telescope finders
+        formats = {
+            {percent = true, format = "%.2f%%", minimum = 0.5},
+            {percent = false, format = "%d", minimum = 1}
+        },
+
+        -- Automatically annotate files after loading perf data
+        annotate_after_load = true,
+        -- Automatically annoate newly opened buffers (if possible)
+        annotate_on_open = true,
+
+        -- Options for telescope-based hottest line finders
+        telescope = {
+            -- Enable telescope instead of fallback vim.ui.select
+            enabled = pcall(require, "telescope"),
+            -- Annotate inside of the preview window
+            annotate = true,
+        },
+
+        -- Patterns used to find the function that surrounds the cursor
+        ts_function_patterns = {
+            -- These should work for most languages
+            default = {
+                "function",
+                "method",
+            },
+            -- Otherwise you can add patterns for specific languages:
+            -- weirdlang = {
+            --     "weirdfunc",
+            -- }
+        }
+    }
+<
+Note: using this configuration will not set any highlights nor will it set any
+keybindings. For a recommended example config see |perfanno-example-config|.
+
+EXAMPLE CONFIG                                         *perfanno-example-config*
+
+The following config sets the highlights to a nice RGB color gradient between
+the background color and an orange red. It also sets some convenient
+keybindings.
+>
+    local perfanno = require("perfanno")
+    local util = require("perfanno.util")
+
+    local bgcolor = vim.fn.synIDattr(vim.fn.hlID("Normal"), "bg", "gui")
+
+    perfanno.setup {
+        -- Creates a 10-step RGB color gradient beween bgcolor and "#CC3300"
+        line_highlights = util.make_bg_highlights(bgcolor, "#CC3300", 10),
+        vt_highlight = util.make_fg_highlight("#CC3300"),
+    }
+
+    local keymap = vim.api.nvim_set_keymap
+
+    keymap("n", "<LEADER>plf", ":PerfLoadFlat<CR>", opts)
+    keymap("n", "<LEADER>plg", ":PerfLoadCallGraph<CR>", opts)
+
+    keymap("n", "<LEADER>pe", ":PerfPickEvent<CR>", opts)
+
+    keymap("n", "<LEADER>pa", ":PerfAnnotate<CR>", opts)
+    keymap("n", "<LEADER>pf", ":PerfAnnotateFunction<CR>", opts)
+    keymap("v", "<LEADER>pa", ":PerfAnnotateSelection<CR>", opts)
+
+    keymap("n", "<LEADER>pt", ":PerfToggleAnnotations<CR>", opts)
+
+    keymap("n", "<LEADER>ph", ":PerfHottestLines<CR>", opts)
+    keymap("n", "<LEADER>pc", ":PerfHottestCallersFunction<CR>", opts)
+    keymap("v", "<LEADER>pc", ":PerfHottestCallersSelection<CR>", opts)
+<
+
+==============================================================================
+COMMANDS                                                     *perfanno-commands*
+
+Loading Profiling Data~
+
+`:PerfLoadFlat`                                                    *:PerfLoadFlat*
+    Tries to load `perf.data` in the current working directory in flat mode,
+    i.e. without any call graph information. If this fails, you will be asked
+    to provide an alternative `perf.data` file.
+
+`:PerfLoadCallGraph`                                          *:PerfLoadCallGraph*
+    Tries to load `perf.data` in the current working directory in with call
+    graph information. If this fails, you will be asked to provide an
+    alternative `perf.data` file.
+
+    Note: This command makes use to the folded output options of perf which
+    may not be available in older versions. It may also require a decent
+    amount of time to read in the data.
+
+Controlling Annotations~
+
+`:PerfPickEvent`                                                  *:PerfPickEvent*
+    Chooses an event from the loaded call graph data to display. This is
+    convenient if you want to switch between say displaying cpu cycles and
+    cache misses.
+
+`:PerfCycleFormat`                                              *:PerfCycleFormat*
+    Toggles between different stored annotation formats. By default this can
+    be used to switch between absolute and relative event counts.
+
+Annotating~
+
+`:PerfAnnotate`                                                    *:PerfAnnotate*
+    Annotates all currently opened buffers with the stored call graph
+    information. If no event has been selected yet, it will call
+    |:PerfPickEvent| first.
+
+`:PerfToggleAnnotations`                                  *:PerfToggleAnnotations*
+    Toggles |:PerfAnnotate| in all currently opened buffers.
+
+`:PerfAnnotateSelection`                                  *:PerfAnnotateSelection*
+    Annotates code only in a given visual selection. Line highlights are shown
+    relative to the total event count in that selection and if the current
+    format is in percent, then the displayed percentages are also relative.
+
+`:PerfAnnotateFunction`                                    *:PerfAnnotateFunction*
+    Works just like |:PerfAnnotateSelection| but automatically selects the
+    current function via treesitter.
+
+Finding Hot Lines~
+
+`:PerfHottestLines`                                            *:PerfHottestLines*
+    Opens a selection window (by default via telescope) that shows the hottest
+    lines of code in the code base according to the currently selected event.
+
+`:PerfHottestLinesSelection`                          *:PerfHottestLinesSelection*
+    Opens a selection window (by default via telescope) that shows the hottest
+    lines of code that call into the visually selected region.
+
+    Note: Currently this only shows direct callers.
+
+`:PerfHottestLinesFunction`                            *:PerfHottestLinesFunction*
+    Works just like |:PerfHottestLinesFunction| but automatically selects the
+    current function via treesitter.
+
+==============================================================================
+EXTENSIONS                                                 *perfanno-extensions*
+
+If you want to use this plugin with a profiler that is not perf, you will
+simply have to call `require("perfanno").load_traces(`{traces}`)` instead of
+using |:PerfLoadFlat| or |:PerfLoadCallGraph|. Here, {traces} is a
+representation of a list of stack traces for each event in the following
+format.
+>
+    local traces = {
+        "event 1" = {
+           {
+               count = 42,
+               frames = {
+                    "/home/user/Project/src_1.cpp:57",
+                    "/home/user/Project/src_2.cpp:32",
+                    "/home/user/Project/src_1.cpp:42"
+               }
+           },
+           {
+               count = 99,
+               frames = {
+                    "/home/user/Project/src_1.cpp:20",
+                    "0x1231232",
+                    "__foo_bar",
+                    "/home/user/Project/src_3.cpp:50"
+               }
+           },
+        },
+
+        "event 2" = {
+            -- ...
+        },
+
+        -- more events...
+    }
+<
+A stack trace is represent by a {count} which tells us how often that exact
+trace occurred and a list of {frames}. Each stack frame should either start
+with / and have the format {fullpath}:{linenum} or it can be anything
+else.
+
+This format is very similar to what the popular `flamegraph` tool expects so
+it should not be too hard to generate this type of information with most
+profilers.
+
+Note: The file paths in the traces should be full, unescaped paths in the
+canonical format, i.e.
+    `/full/file path/to/source.cpp:35`
+instead of
+    `/full/file\ path//to/../to/source.cpp:35`
+
+==============================================================================
+LICENSE                                                       *perfanno-license*
+
+MIT License
+
+Copyright (c) 2022 Thorben Troebst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+The software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement. In no event shall the
+authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising from,
+out of or in connection with the software or the use or other dealings in the
+software.
+
+==============================================================================
+vim:tw=78:sw=4:ft=help:norl:

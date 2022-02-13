@@ -56,35 +56,29 @@ local function get_perf_data(cont)
     end
 end
 
+function M.load_traces(traces)
+    callgraph.load_traces(traces)
+
+    if #callgraph.events == 1 then
+        config.selected_event = callgraph.events[1]
+    else
+        config.selected_event = nil
+    end
+
+    if callgraph.is_loaded() and config.values.annotate_after_load then
+        M.annotate()
+    end
+end
+
 function M.load_perf_flat()
     get_perf_data(function(perf_data)
-        callgraph.load_traces(parse_perf.perf_flat(perf_data))
-
-        if #callgraph.events == 1 then
-            config.selected_event = callgraph.events[1]
-        else
-            config.selected_event = nil
-        end
-
-        if callgraph.is_loaded() and config.values.annotate_after_load then
-            M.annotate()
-        end
+        M.load_traces(parse_perf.perf_flat(perf_data))
     end)
 end
 
 function M.load_perf_callgraph()
     get_perf_data(function(perf_data)
-        callgraph.load_traces(parse_perf.perf_callgraph(perf_data))
-
-        if #callgraph.events == 1 then
-            config.selected_event = callgraph.events[1]
-        else
-            config.selected_event = nil
-        end
-
-        if callgraph.is_loaded() and config.values.annotate_after_load then
-            M.annotate()
-        end
+        M.load_traces(parse_perf.perf_callgraph(perf_data))
     end)
 end
 
