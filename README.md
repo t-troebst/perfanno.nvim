@@ -98,10 +98,9 @@ keymap("n", "<LEADER>plf", ":PerfLoadFlat<CR>", opts)
 keymap("n", "<LEADER>plg", ":PerfLoadCallGraph<CR>", opts)
 
 keymap("n", "<LEADER>pe", ":PerfPickEvent<CR>", opts)
-keymap("n", "<LEADER>pf", ":PerfCycleFormat<CR>", opts)
 
 keymap("n", "<LEADER>pa", ":PerfAnnotate<CR>", opts)
-keymap("n", "<LEADER>paf", ":PerfAnnotateFunction<CR>", opts)
+keymap("n", "<LEADER>pf", ":PerfAnnotateFunction<CR>", opts)
 keymap("v", "<LEADER>pa", ":PerfAnnotateSelection<CR>", opts)
 
 keymap("n", "<LEADER>pt", ":PerfToggleAnnotations<CR>", opts)
