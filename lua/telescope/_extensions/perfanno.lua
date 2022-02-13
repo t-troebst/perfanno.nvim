@@ -64,7 +64,10 @@ local function annotated_previewer(annotate_file)
             if self.state.bufname ~= entry.path then
                 local opts = {
                     callback = function(bufnr)
-                        annotate_file(bufnr, entry.path)
+                        if config.values.telescope.annotate then
+                            annotate_file(bufnr, entry.path)
+                        end
+
                         vim.api.nvim_win_set_cursor(self.state.winid, {entry.lnum, 0})
                     end
                 }

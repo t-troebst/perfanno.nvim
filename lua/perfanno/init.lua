@@ -30,15 +30,14 @@ function M.setup(opts)
     vim.cmd[[command PerfHottestCallersFunction :lua require("perfanno").find_hottest_callers_function()]]
     vim.cmd[[command -range PerfHottestCallersSelection :lua require("perfanno").find_hottest_callers_selection()]]
 
-    if config.use_telescope then
+    if config.values.telescope.enabled then
         finder = require("telescope").extensions.perfanno
-        -- Should we load this extension for the user?
     else
         finder = require("perfanno.find_hottest")
     end
 
     -- Setup automatic annotation of new buffers
-    if config.annotate_on_open then
+    if config.values.annotate_on_open then
         vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
     end
 end
@@ -67,7 +66,7 @@ function M.load_perf_flat()
             config.selected_event = nil
         end
 
-        if callgraph.is_loaded() and config.annotate_after_load then
+        if callgraph.is_loaded() and config.values.annotate_after_load then
             M.annotate()
         end
     end)
@@ -83,7 +82,7 @@ function M.load_perf_callgraph()
             config.selected_event = nil
         end
 
-        if callgraph.is_loaded() and config.annotate_after_load then
+        if callgraph.is_loaded() and config.values.annotate_after_load then
             M.annotate()
         end
     end)
@@ -136,7 +135,7 @@ end
 function M.cycle_format()
     config.selected_format = config.selected_format + 1
 
-    if config.selected_format > #config.formats then
+    if config.selected_format > #config.values.formats then
         config.selected_format = 1
     end
 

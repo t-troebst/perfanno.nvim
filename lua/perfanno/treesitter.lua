@@ -63,7 +63,7 @@ function M.get_function_lines(bufnr, linenr, column)
         return nil
     end
 
-    local patterns = config.ts_function_patterns[lang] or config.ts_function_patterns.default
+    local patterns = config.values.ts_function_patterns[lang] or config.values.ts_function_patterns.default
 
     return M.get_context_lines(bufnr, linenr, column, patterns)
 end

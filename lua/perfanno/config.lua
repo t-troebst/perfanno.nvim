@@ -20,8 +20,14 @@ local defaults = {
     annotate_after_load = true,
     -- Automatically annoate newly opened buffers if information is available
     annotate_on_open = true,
-    -- Uses telescope for hottest line selections if possible
-    use_telescope = pcall(require, "telescope"),
+
+    -- Options for telescope-based hottest line finders
+    telescope = {
+        -- Enable if possible, otherwise the plugin will fall back to vim.ui.select
+        enabled = pcall(require, "telescope"),
+        -- Annotate inside of the preview window
+        annotate = true,
+    },
 
     -- Node type patterns used to find the function that surrounds the cursor
     ts_function_patterns = {
@@ -35,22 +41,20 @@ local defaults = {
         --     "weirdfunc",
         -- }
     },
-
-    -- Internal, stores current state - do not touch!
-    selected_format = 1,
-    selected_event = nil,
 }
 
-local M = vim.deepcopy(defaults)
+local M = {}
+
+M.values = vim.deepcopy(defaults)
+M.selected_format = 1
+M.selected_event = nil
 
 function M.load(opts)
-    for key, value in pairs(opts) do
-        M[key] = vim.deepcopy(value)
-    end
+    M.values = vim.tbl_deep_extend("force", M.values, opts)
 end
 
 function M.format(count, total)
-    local fmt = M.formats[M.selected_format]
+    local fmt = M.values.formats[M.selected_format]
     local val
 
     if fmt.percent then

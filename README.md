@@ -40,8 +40,14 @@ require("perfanno").setup {
     annotate_after_load = true,
     -- Automatically annoate newly opened buffers if information is available
     annotate_on_open = true,
-    -- Use telescope for hottest line selections if possible
-    use_telescope = pcall(require, "telescope"),
+
+    -- Options for telescope-based hottest line finders
+    telescope = {
+        -- Enable if possible, otherwise the plugin will fall back to vim.ui.select
+        enabled = pcall(require, "telescope"),
+        -- Annotate inside of the preview window
+        annotate = true,
+    },
 
     -- Node type patterns used to find the function that surrounds the cursor
     ts_function_patterns = {
