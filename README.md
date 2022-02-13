@@ -17,7 +17,23 @@ This plugin requires NeoVim 0.6 and was tested with perf 5.16.
 The call graph mode may require a relatively recent version of perf that supports folded output, though it should be easy to add support for older versions similar to how flamegraph does it.
 
 You should be able to install this plugin the same way you install other NeoVim lua plugins, e.g. via `use "t-troebst/perfanno.nvim"` in packer.
-After installing, you can initialize the plugin by calling:
+After installing, you need to initialize the plugin by calling:
+```lua
+    require("perfanno").setup {}
+```
+
+This will give you the default settings which are shown [below](#configuration).
+However, you will most likely want to set `line_highlights` and `vt_highlight` to appropriate highlights and set some keybindings to make use of this plugin.
+See the provided [example config](#example-config).
+
+**Dependencies:**
+If you want to use the commands that jump to the hottest lines of code, you will probably want to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
+Otherwise (or if you explicitly disable telescope during setup), the plugin will fall back to `vim.ui.select` instead.
+For `:PerfAnnotateFunction` and `:PerfHottestCallersFunction` you will need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
+
+## Configuration
+
+For the full list of potential configuration options, see the following setup call.
 
 ```lua
 require("perfanno").setup {
@@ -66,18 +82,11 @@ require("perfanno").setup {
 ```
 
 These are the default settings, so this is equivalent to `require("perfanno").setup()`.
-You will most likely want to set `line_highlights` and `vt_highlight` to appropriate highlights and set some keybindings to make use of this plugin.
-See the provided [example config](#example-config).
-
-**Dependencies:**
-If you want to use the commands that jump to the hottest lines of code, you will probably want to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
-Otherwise (or if you explicitly disable telescope during setup), the plugin will fall back to `vim.ui.select` instead.
-For `:PerfAnnotateFunction` and `:PerfHottestCallersFunction` you will need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
 ## Example Config
 
 The following config sets the highlights to a nice RGB color gradient between the background color and an orange red.
-It also sets convenient keybindings for all of the standard commands.
+It also sets convenient keybindings for most of the standard commands.
 
 ```lua
 local perfanno = require("perfanno")
@@ -140,8 +149,51 @@ If there is more than one event that was loaded, then you will be asked to pick 
 * `:PerfHottestCallersSelection` opens a telescope finder with the hottest lines that lead directly to the currently selected lines.
 * `:PerfHottestCallersFunction` works just like `:PerfHottestCallersSelection` but selects the function that contains the cursor via treesitter.
 
+## Extensions
+
+If you wish to use this plugin with a profiler that is not perf, you can simply call `require("perfanno").load_traces` to set up the callgraph information with a list of stack traces for each possible event.
+For the exact format see the example below.
+
+```lua
+local traces = {
+    "event 1" = {
+       {
+           count = 42,
+           frames = {
+                "/home/user/Project/src_1.cpp:57",
+                "/home/user/Project/src_2.cpp:32",
+                "/home/user/Project/src_1.cpp:42"
+           }
+       },
+       {
+           count = 99,
+           frames = {
+                "/home/user/Project/src_1.cpp:20",
+                "0x1231232",
+                "__foo_bar",
+                "/home/user/Project/src_3.cpp:50"
+           }
+       },
+    },
+
+    "event 2" = {
+        -- ...
+    },
+
+    -- more events...
+}
+
+require("perfanno").load_traces(traces)
+```
+
+A stack trace is represented by a `count` which tells us how often that exact trace occurred and a list of `frames`.
+Each stack frame should either start with `/` and have the format `/full/file/path.cpp:linenum` or it can be anything else.
+This format is very similar to what the popular `flamegraph` tool expects, so it should not be too hard to generate this type of information with most profilers.
+
+
+Note: The file paths in the traces should be full, unescaped paths in the canonical format, i.e. `/full/file path/to/source.cpp:35` instead of `/full/file\ path//to/../to/source.cpp:35`.
+
 ## Future Goals
 
-* Improve (or rather add...) documentation
 * Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder)
 * Add some kind of tree-based call graph exploration

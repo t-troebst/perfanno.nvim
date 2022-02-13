@@ -255,7 +255,7 @@ format.
         -- more events...
     }
 <
-A stack trace is represent by a {count} which tells us how often that exact
+A stack trace is represented by a {count} which tells us how often that exact
 trace occurred and a list of {frames}. Each stack frame should either start
 with / and have the format {fullpath}:{linenum} or it can be anything
 else.
