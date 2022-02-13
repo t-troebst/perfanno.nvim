@@ -7,7 +7,7 @@ It supports two different modes:
 * **flat:** Each line is annotated with the samples that occurred in that line *without* nested function calls. This information is easier to get but obviously disables some useful features of this plugin.
 
 If the perf.data file has multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
-In addition, PerfAnno provides a Telescope finder that allows you to immediately jump to the hottest lines in your code base or the hottest callers of a specific region of code (typically a function).
+In addition, PerfAnno provides a Telescope (or `vim.ui.select`) finder that allows you to immediately jump to the hottest lines in your code base or the hottest callers of a specific region of code (typically a function).
 
 ![demo](https://user-images.githubusercontent.com/15610942/153376301-d096ae61-e6a3-46f3-a8b1-305bd0007d7a.gif)
 
@@ -64,7 +64,8 @@ You will most likely want to set `line_highlights` and `vt_highlight` to appropr
 See the provided [example config](#example-config).
 
 **Dependencies:**
-If you want to use the commands that jump to the hottest lines of code, you need to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
+If you want to use the commands that jump to the hottest lines of code, you will probably want to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
+Otherwise (or if you set `use_telescope = false` during setup, the plugin will fall back to `vim.ui.select` instead.
 For `:PerfAnnotateFunction` and `:PerfHottestCallersFunction` you will need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
 ## Example Config
@@ -137,9 +138,6 @@ If there is more than one event that was loaded, then you will be asked to pick 
 
 ## Future Goals
 
-This plugin is still under **active development** and I am working on several features and fixes:
-
-* Show annotations inside the telescope previewer
-* Add some kind of tree-based call graph exploration
-* Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder)
 * Improve (or rather add...) documentation
+* Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder)
+* Add some kind of tree-based call graph exploration

@@ -87,7 +87,7 @@ end
 
 function M.rgb_color_gradient(start, stop, num)
     if num == 1 then
-        return {start}
+        return {stop}
     end
 
     local colors = {}
@@ -96,9 +96,9 @@ function M.rgb_color_gradient(start, stop, num)
     local r_stop, g_stop, b_stop = unpack(stop)
 
     for i = 1, num do
-        local color = {r_start + (r_stop - r_start) * (i - 1) / (num - 1),
-                       g_start + (g_stop - g_start) * (i - 1) / (num - 1),
-                       b_start + (b_stop - b_start) * (i - 1) / (num - 1)}
+        local color = {r_start + (r_stop - r_start) * i / num,
+                       g_start + (g_stop - g_start) * i / num,
+                       b_start + (b_stop - b_start) * i / num}
         table.insert(colors, color)
     end
 

@@ -10,7 +10,7 @@ local M = {}
 
 local namespace = vim.api.nvim_create_namespace("perfanno.annotations")
 
-local function add_annotation(bnr, linenr, count, total_count, max_count)
+function M.add_annotation(bnr, linenr, count, total_count, max_count)
     local fmt = config.format(count, total_count)
 
     if not fmt then
@@ -18,11 +18,9 @@ local function add_annotation(bnr, linenr, count, total_count, max_count)
     end
 
     if config.line_highlights then
-        local i = util.round(#config.line_highlights * count / max_count)
+        local i = 1 + util.round((#config.line_highlights - 1) * count / max_count)
 
-        if i > 0 then
-            vim.api.nvim_buf_add_highlight(bnr, namespace, config.line_highlights[i], linenr - 1, 0, -1)
-        end
+        vim.api.nvim_buf_add_highlight(bnr, namespace, config.line_highlights[i], linenr - 1, 0, -1)
     end
 
     if config.vt_highlight then
@@ -55,7 +53,7 @@ function M.annotate_buffer(bnr, event)
     local max_count = callgraph.callgraphs[event].max_count
 
     for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
-        add_annotation(bnr, linenr, info.count, total_count, max_count)
+        M.add_annotation(bnr, linenr, info.count, total_count, max_count)
     end
 end
 
@@ -86,7 +84,7 @@ function M.annotate_range(bnr, line_begin, line_end, event)
 
     for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
         if linenr >= line_begin and linenr <= line_end then
-            add_annotation(bnr, linenr, info.count, total_count, max_count)
+            M.add_annotation(bnr, linenr, info.count, total_count, max_count)
         end
     end
 end

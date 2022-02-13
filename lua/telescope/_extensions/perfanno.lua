@@ -3,17 +3,19 @@
 
 local telescope = require("telescope")
 local pickers = require("telescope.pickers")
+local previewers = require("telescope.previewers")
 local finders = require("telescope.finders")
 local tconf = require("telescope.config").values
 
 local perfanno = require("perfanno")
 local callgraph = require("perfanno.callgraph")
+local annotate = require("perfanno.annotate")
 local config = require("perfanno.config")
 local treesitter = require("perfanno.treesitter")
 local util = require("perfanno.util")
 
-local function hottest_table(nodes, total_count)
-    local opts = {results = nodes}
+local function hottest_table(entries, total_count)
+    local opts = {results = entries}
 
     table.sort(opts.results, function(e1, e2)
         return e1[3] > e2[3]
@@ -52,24 +54,63 @@ local function hottest_table(nodes, total_count)
     return finders.new_table(opts)
 end
 
+local function annotated_previewer(annotate_file)
+    return previewers.new_buffer_previewer {
+        define_preview = function(self, entry, _)
+            if entry.path == "" then
+                return
+            end
+
+            if self.state.bufname ~= entry.path then
+                local opts = {
+                    callback = function(bufnr)
+                        annotate_file(bufnr, entry.path)
+                        vim.api.nvim_win_set_cursor(self.state.winid, {entry.lnum, 0})
+                    end
+                }
+
+                tconf.buffer_previewer_maker(entry.path, self.state.bufnr, opts)
+            else
+                vim.api.nvim_win_set_cursor(self.state.winid, {entry.lnum, 0})
+            end
+        end,
+
+        get_buffer_by_name = function(_, entry)
+            return entry.path
+        end,
+
+        title = "File Preview",
+    }
+end
 
 local function find_hottest_lines(event)
     event = event or config.selected_event
     assert(callgraph.callgraphs[event], "Invalid event!")
 
-    local nodes = {}
+    local entries = {}
+    local cg = callgraph.callgraphs[event]
 
-    for file, file_tbl in pairs(callgraph.callgraphs[event].node_info) do
+    for file, file_tbl in pairs(cg.node_info) do
         for linenr, node_info in pairs(file_tbl) do
-            table.insert(nodes, {file, linenr, node_info.count})
+            table.insert(entries, {file, linenr, node_info.count})
+        end
+    end
+
+    local function annotate_file(bufnr, file)
+        if not cg.node_info[file] then
+            return
+        end
+
+        for linenr, node_info in pairs(cg.node_info[file]) do
+            annotate.add_annotation(bufnr, linenr, node_info.count, cg.total_count, cg.max_count)
         end
     end
 
     pickers.new({}, {
         prompt_title = "",
-        finder = hottest_table(nodes, callgraph.callgraphs[event].total_count),
+        finder = hottest_table(entries, callgraph.callgraphs[event].total_count),
         sorter = tconf.file_sorter{},
-        previewer = tconf.grep_previewer{}
+        previewer = annotated_previewer(annotate_file),
     }):find()
 end
 
@@ -79,29 +120,41 @@ local function find_hottest_callers(file, line_begin, line_end, event)
     assert(callgraph.callgraphs[event], "Invalid event!")
 
     local lines = {}
-    local total_count = 0
 
-    for linenr, node_info in pairs(callgraph.callgraphs[event].node_info[file]) do
+    for linenr, _ in pairs(callgraph.callgraphs[event].node_info[file]) do
         if linenr >= line_begin and linenr <= line_end then
             table.insert(lines, {file, linenr})
-            total_count = total_count + node_info.count
         end
     end
 
     local in_counts = callgraph.merge_in_counts(event, lines)
-    local nodes = {}
+    local entries = {}
+    local total_count = 0
+    local max_count = 0
 
     for in_file, file_tbl in pairs(in_counts) do
         for in_line, count in pairs(file_tbl) do
-            table.insert(nodes, {in_file, in_line, count})
+            table.insert(entries, {in_file, in_line, count})
+            total_count = total_count + count
+            max_count = math.max(max_count, count)
+        end
+    end
+
+    local function annotate_file(bufnr, fname)
+        if not in_counts[fname] then
+            return
+        end
+
+        for linenr, count in pairs(in_counts[fname]) do
+            annotate.add_annotation(bufnr, linenr, count, total_count, max_count)
         end
     end
 
     pickers.new({}, {
         prompt_title = "",
-        finder = hottest_table(nodes, total_count),
+        finder = hottest_table(entries, total_count),
         sorter = tconf.file_sorter{},
-        previewer = tconf.grep_previewer{}
+        previewer = annotated_previewer(annotate_file)
     }):find()
 end
 
