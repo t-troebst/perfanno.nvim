@@ -9,7 +9,7 @@ It supports two different modes:
 If the perf.data file has multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
 In addition, PerfAnno provides a Telescope (or `vim.ui.select`) finder that allows you to immediately jump to the hottest lines in your code base or the hottest callers of a specific region of code (typically a function).
 
-![demo](https://user-images.githubusercontent.com/15610942/153376301-d096ae61-e6a3-46f3-a8b1-305bd0007d7a.gif)
+![demo](https://user-images.githubusercontent.com/15610942/153738934-05cd1f1a-3a78-4be2-95a7-b368d6a6f462.gif)
 
 ## Installation
 
@@ -19,7 +19,8 @@ The call graph mode may require a relatively recent version of perf that support
 You should be able to install this plugin the same way you install other NeoVim lua plugins, e.g. via `use "t-troebst/perfanno.nvim"` in packer.
 After installing, you need to initialize the plugin by calling:
 ```lua
-require("perfanno").setup()
+require("perfanno").setup()!
+
 ```
 
 This will give you the default settings which are shown [below](#configuration).
@@ -190,7 +191,6 @@ require("perfanno").load_traces(traces)
 A stack trace is represented by a `count` which tells us how often that exact trace occurred and a list of `frames`.
 Each stack frame should either start with `/` and have the format `/full/file/path.cpp:linenum` or it can be anything else.
 This format is very similar to what the popular flamegraph tool expects, so it should not be too hard to generate this type of information with most profilers.
-
 
 Note: The file paths in the traces should be full, unescaped paths in the canonical format, i.e. `/full/file path/to/source.cpp:35` instead of `/full/file\ path//to/../to/source.cpp:35`.
 
