@@ -9,7 +9,7 @@ It supports two different modes:
 If the perf.data file has multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
 In addition, PerfAnno provides a Telescope (or `vim.ui.select`) finder that allows you to immediately jump to the hottest lines in your code base or the hottest callers of a specific region of code (typically a function).
 
-![demo](https://user-images.githubusercontent.com/15610942/153738934-05cd1f1a-3a78-4be2-95a7-b368d6a6f462.gif)
+https://user-images.githubusercontent.com/15610942/153775719-ed236a8d-d012-448d-b3b1-8b38f57d1fbf.mp4
 
 ## Installation
 
