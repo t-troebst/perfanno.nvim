@@ -19,7 +19,7 @@ The call graph mode may require a relatively recent version of perf that support
 You should be able to install this plugin the same way you install other NeoVim lua plugins, e.g. via `use "t-troebst/perfanno.nvim"` in packer.
 After installing, you need to initialize the plugin by calling:
 ```lua
-    require("perfanno").setup {}
+require("perfanno").setup()
 ```
 
 This will give you the default settings which are shown [below](#configuration).
@@ -195,5 +195,8 @@ Note: The file paths in the traces should be full, unescaped paths in the canoni
 
 ## Future Goals
 
-* Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder)
-* Add some kind of tree-based call graph exploration
+* Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder).
+* Add some kind of tree-based call graph exploration.
+* Add support for `:FindHottestCallers` with increased depth.
+* Add `:FindHottestCallees` which is essentially `:FindHottestLines` but relative to stack traces that go through a certain selection.
+
