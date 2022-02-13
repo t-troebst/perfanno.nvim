@@ -167,7 +167,7 @@ end
 
 local function find_hottest_callers_function()
     perfanno.with_event(function()
-        local file = vim.fn.expand("%:p")
+        local file = vim.fn.expand("%:p"):gsub("/+", "/")
         local line_begin, line_end = treesitter.get_function_lines()
 
         if line_begin and line_end then
@@ -178,7 +178,7 @@ end
 
 local function find_hottest_callers_selection()
     perfanno.with_event(function()
-        local file = vim.fn.expand("%:p")
+        local file = vim.fn.expand("%:p"):gsub("/+", "/")
         local line_begin, _, line_end, _ = util.visual_selection_range()
 
         if line_begin and line_end then

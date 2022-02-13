@@ -40,7 +40,7 @@ function M.annotate_buffer(bnr, event)
 
     bnr = bnr or vim.api.nvim_get_current_buf()
 
-    local file = vim.fn.expand("#" .. bnr .. ":p"):gsub("//", "/")
+    local file = vim.fn.expand("#" .. bnr .. ":p"):gsub("/+", "/")
 
     if not callgraph.callgraphs[event].node_info[file] then
         return false
@@ -64,7 +64,7 @@ function M.annotate_range(bnr, line_begin, line_end, event)
 
     bnr = bnr or vim.api.nvim_get_current_buf()
 
-    local file = vim.fn.expand("#" .. bnr .. ":p"):gsub("//", "/")
+    local file = vim.fn.expand("#" .. bnr .. ":p"):gsub("/+", "/")
 
     if not callgraph.callgraphs[event].node_info[file] then
         return false

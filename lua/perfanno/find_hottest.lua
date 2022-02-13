@@ -11,7 +11,7 @@ local M = {}
 local function go_to_entry(entry)
     if entry and entry[1] ~= "symbol" then
         -- Isn't there a way to do this via the lua API??
-        vim.cmd(":edit +" .. entry[2] .. " " .. entry[1])
+        vim.cmd(":edit +" .. entry[2] .. " " .. vim.fn.fnameescape(entry[1]))
     end
 end
 
@@ -96,7 +96,7 @@ end
 
 
 function M.find_hottest_callers_function(event)
-    local file = vim.fn.expand("%:p")
+    local file = vim.fn.expand("%:p"):gsub("/+", "/")
     local line_begin, line_end = treesitter.get_function_lines()
 
     if line_begin and line_end then
@@ -105,7 +105,7 @@ function M.find_hottest_callers_function(event)
 end
 
 function M.find_hottest_callers_selection(event)
-    local file = vim.fn.expand("%:p")
+    local file = vim.fn.expand("%:p"):gsub("/+", "/")
     local line_begin, _, line_end, _ = util.visual_selection_range()
 
     if line_begin and line_end then
