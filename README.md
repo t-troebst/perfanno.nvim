@@ -174,6 +174,7 @@ local traces = {
                 "/home/user/Project/src_3.cpp:50"
            }
        },
+       -- more traces...
     },
 
     "event 2" = {
