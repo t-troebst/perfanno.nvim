@@ -32,6 +32,43 @@ If you want to use the commands that jump to the hottest lines of code, you will
 Otherwise (or if you explicitly disable telescope during setup), the plugin will fall back to `vim.ui.select` instead.
 For `:PerfAnnotateFunction` and `:PerfHottestCallersFunction` you will need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
+## Example Config
+
+The following config sets the highlights to a nice RGB color gradient between the background color and an orange red.
+It also sets convenient keybindings for most of the standard commands.
+
+```lua
+local perfanno = require("perfanno")
+local util = require("perfanno.util")
+
+local bgcolor = vim.fn.synIDattr(vim.fn.hlID("Normal"), "bg", "gui")
+
+perfanno.setup {
+    -- Creates a 10-step RGB color gradient beween bgcolor and "#CC3300"
+    line_highlights = util.make_bg_highlights(bgcolor, "#CC3300", 10),
+    vt_highlight = util.make_fg_highlight("#CC3300"),
+}
+
+local keymap = vim.api.nvim_set_keymap
+local opts = {noremap = true, silent = true}
+
+keymap("n", "<LEADER>plf", ":PerfLoadFlat<CR>", opts)
+keymap("n", "<LEADER>plg", ":PerfLoadCallGraph<CR>", opts)
+keymap("n", "<LEADER>plo", ":PerfLoadFlameGraph<CR>", opts)
+
+keymap("n", "<LEADER>pe", ":PerfPickEvent<CR>", opts)
+
+keymap("n", "<LEADER>pa", ":PerfAnnotate<CR>", opts)
+keymap("n", "<LEADER>pf", ":PerfAnnotateFunction<CR>", opts)
+keymap("v", "<LEADER>pa", ":PerfAnnotateSelection<CR>", opts)
+
+keymap("n", "<LEADER>pt", ":PerfToggleAnnotations<CR>", opts)
+
+keymap("n", "<LEADER>ph", ":PerfHottestLines<CR>", opts)
+keymap("n", "<LEADER>pc", ":PerfHottestCallersFunction<CR>", opts)
+keymap("v", "<LEADER>pc", ":PerfHottestCallersSelection<CR>", opts)
+```
+
 ## Configuration
 
 For the full list of potential configuration options, see the following setup call.
@@ -83,42 +120,6 @@ require("perfanno").setup {
 ```
 
 These are the default settings, so this is equivalent to `require("perfanno").setup()`.
-
-## Example Config
-
-The following config sets the highlights to a nice RGB color gradient between the background color and an orange red.
-It also sets convenient keybindings for most of the standard commands.
-
-```lua
-local perfanno = require("perfanno")
-local util = require("perfanno.util")
-
-local bgcolor = vim.fn.synIDattr(vim.fn.hlID("Normal"), "bg", "gui")
-
-perfanno.setup {
-    -- Creates a 10-step RGB color gradient beween bgcolor and "#CC3300"
-    line_highlights = util.make_bg_highlights(bgcolor, "#CC3300", 10),
-    vt_highlight = util.make_fg_highlight("#CC3300"),
-}
-
-local keymap = vim.api.nvim_set_keymap
-
-keymap("n", "<LEADER>plf", ":PerfLoadFlat<CR>", opts)
-keymap("n", "<LEADER>plg", ":PerfLoadCallGraph<CR>", opts)
-keymap("n", "<LEADER>plo", ":PerfLoadFlameGraph<CR>", opts)
-
-keymap("n", "<LEADER>pe", ":PerfPickEvent<CR>", opts)
-
-keymap("n", "<LEADER>pa", ":PerfAnnotate<CR>", opts)
-keymap("n", "<LEADER>pf", ":PerfAnnotateFunction<CR>", opts)
-keymap("v", "<LEADER>pa", ":PerfAnnotateSelection<CR>", opts)
-
-keymap("n", "<LEADER>pt", ":PerfToggleAnnotations<CR>", opts)
-
-keymap("n", "<LEADER>ph", ":PerfHottestLines<CR>", opts)
-keymap("n", "<LEADER>pc", ":PerfHottestCallersFunction<CR>", opts)
-keymap("v", "<LEADER>pc", ":PerfHottestCallersSelection<CR>", opts)
-```
 
 ## Workflow
 
