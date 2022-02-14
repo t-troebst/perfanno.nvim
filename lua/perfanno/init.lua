@@ -11,9 +11,10 @@ local M = {}
 function M.setup(opts)
     config.load(opts)
 
-    -- Commands for loading call graph information via perf
+    -- Commands for loading call graph information via perf / flamegraph
     vim.cmd[[command PerfLoadFlat :lua require("perfanno").load_perf_flat()]]
     vim.cmd[[command PerfLoadCallGraph :lua require("perfanno").load_perf_callgraph()]]
+    vim.cmd[[command PerfLoadFlameGraph :lua require("perfanno").load_flamegraph()]]
 
     -- Commands that control what and how to annotate
     vim.cmd[[command PerfPickEvent :lua require("perfanno").pick_event()]]
@@ -42,12 +43,12 @@ function M.setup(opts)
     end
 end
 
-local function get_perf_data(cont)
-    if vim.fn.filereadable("perf.data") == 1 then
-        cont("perf.data")
+local function get_data_file(default, cont)
+    if vim.fn.filereadable(default) == 1 then
+        cont(default)
     else
         local input_opts = {
-            prompt = "Input path to perf.data: ",
+            prompt = "Input path to " .. default .. ": ",
             default = vim.fn.getcwd() .. "/",
             completion = "file"
         }
@@ -71,14 +72,39 @@ function M.load_traces(traces)
 end
 
 function M.load_perf_flat()
-    get_perf_data(function(perf_data)
+    get_data_file("perf.data", function(perf_data)
         M.load_traces(parse_perf.perf_flat(perf_data))
     end)
 end
 
 function M.load_perf_callgraph()
-    get_perf_data(function(perf_data)
+    get_data_file("perf.data", function(perf_data)
         M.load_traces(parse_perf.perf_callgraph(perf_data))
+    end)
+end
+
+local function parse_flamegraph(perf_log)
+    local traces = {}
+
+    for line in io.lines(perf_log) do
+        local trace = {}
+
+        trace.count = line:match("(%d+)$")
+        trace.frames = {}
+
+        for frame in line:gmatch(";?(.-:%d+)") do
+            table.insert(trace.frames, frame)
+        end
+
+        table.insert(traces, trace)
+    end
+
+    return {time = traces}
+end
+
+function M.load_flamegraph()
+    get_data_file("perf.log", function(perf_log)
+        M.load_traces(parse_flamegraph(perf_log))
     end)
 end
 

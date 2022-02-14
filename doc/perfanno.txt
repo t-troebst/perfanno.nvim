@@ -26,8 +26,9 @@ CONTENTS                                                     *perfanno-contents*
 INTRODUCTION                                             *perfanno-introduction*
 
 PerfAnno is a simple lua plugin for NeoVim which stores call graph information
-obtained from a profiler like Perf and allows you to explore it in an
-intuitive and interactive way.
+obtained from a profiler like Perf or anything that can output folded stack
+traces in the flamegraph format and allows you to explore it in an intuitive
+and interactive way.
 
 As a basic functionality it annotates your code, displaying what percentage of
 time (or other events) is spent in individual lines of code. See
@@ -140,6 +141,7 @@ keybindings.
 
     keymap("n", "<LEADER>plf", ":PerfLoadFlat<CR>", opts)
     keymap("n", "<LEADER>plg", ":PerfLoadCallGraph<CR>", opts)
+    keymap("n", "<LEADER>plo", ":PerfLoadFlameGraph<CR>", opts)
 
     keymap("n", "<LEADER>pe", ":PerfPickEvent<CR>", opts)
 
@@ -174,6 +176,9 @@ However, this requires that your program and all libraries have been compiled
 with `--fno-omit-frame-pointer` and you may find that the line numbers are
 slightly off. For more information, see `PERF(1)`.
 
+If you are using another profiling tool that is not perf, you need to generate
+a list of folded stacktraces. See |:PerfLoadFlameGraph| for more details.
+
 ==============================================================================
 COMMANDS                                                     *perfanno-commands*
 
@@ -192,6 +197,22 @@ Loading Profiling Data~
     Note: This command makes use to the folded output options of perf which
     may not be available in older versions. It may also require a decent
     amount of time to read in the data.
+
+`:PerfLoadFlameGraph`                                        *:PerfLoadFlameGraph*
+    Loads a `perf.log` data that is in the same format that the popular
+    `flamegraph.pl` script uses. Each line should consist of `;`-separated
+    source lines with a final trace count at the end. For example:
+>
+    /path/to/src_1.cpp:30;/path/to/src_2.cpp:27;/path/to/src_1.cpp:27 47
+    /path/to/src_1.cpp:30;/path/to/src_2.cpp:50 20
+    /path/to/src_1.cpp:10;/path/to/src_3.cpp:20;/path/to/src_2.cpp:15 7
+    /path/to/src_1.cpp:10;/path/to/src_3.cpp:20;/path/to/src_2.cpp:50 92
+<
+    Note: The file paths in the traces should be full, unescaped paths in the
+    canonical format, i.e.
+        `/full/file path/to/source.cpp:35`
+    instead of
+        `/full/file\ path//to/../to/source.cpp:35`
 
 Controlling Annotations~
 
@@ -242,11 +263,10 @@ Finding Hot Lines~
 ==============================================================================
 EXTENSIONS                                                 *perfanno-extensions*
 
-If you want to use this plugin with a profiler that is not perf, you will
-simply have to call `require("perfanno").load_traces(`{traces}`)` instead of
-using |:PerfLoadFlat| or |:PerfLoadCallGraph|. Here, {traces} is a
-representation of a list of stack traces for each event in the following
-format.
+If you want to use this plugin with another profiler, you will simply have to
+call `require("perfanno").load_traces(`{traces}`)` instead of using the
+standard load commands. Here, {traces} is a representation of a list of stack
+traces for each event in the following format.
 >
     local traces = {
         "event 1" = {
@@ -281,10 +301,6 @@ A stack trace is represented by a {count} which tells us how often that exact
 trace occurred and a list of {frames}. Each stack frame should either start
 with / and have the format {fullpath}:{linenum} or it can be anything
 else.
-
-This format is very similar to what the popular `flamegraph` tool expects so
-it should not be too hard to generate this type of information with most
-profilers.
 
 Note: The file paths in the traces should be full, unescaped paths in the
 canonical format, i.e.

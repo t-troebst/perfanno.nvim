@@ -1,6 +1,6 @@
 # PerfAnno: Profiling Annotations and Call Graph Exploration in NeoVim!
 
-PerfAnno is a simple lua plugin for NeoVim that allows you to annotate your code with output from perf or potentially other profilers.
+PerfAnno is a simple lua plugin for NeoVim that allows you to annotate your code with output from perf or other profilers that can generate stack traces in the [flamegraph](https://github.com/brendangregg/FlameGraph) format.
 It supports two different modes:
 
 * **call graph:** Each line is annotated with the samples that occurred in that line *including* nested function calls. This requires that the perf.data file has been recorded with call graph information.
@@ -14,7 +14,7 @@ https://user-images.githubusercontent.com/15610942/153775719-ed236a8d-d012-448d-
 ## Installation
 
 This plugin requires NeoVim 0.6 and was tested with perf 5.16.
-The call graph mode may require a relatively recent version of perf that supports folded output, though it should be easy to add support for older versions similar to how flamegraph does it.
+The call graph mode may require a relatively recent version of perf that supports folded output, though it should be easy to add support for older versions manually.
 
 You should be able to install this plugin the same way you install other NeoVim lua plugins, e.g. via `use "t-troebst/perfanno.nvim"` in packer.
 After installing, you need to initialize the plugin by calling:
@@ -105,6 +105,7 @@ local keymap = vim.api.nvim_set_keymap
 
 keymap("n", "<LEADER>plf", ":PerfLoadFlat<CR>", opts)
 keymap("n", "<LEADER>plg", ":PerfLoadCallGraph<CR>", opts)
+keymap("n", "<LEADER>plo", ":PerfLoadFlameGraph<CR>", opts)
 
 keymap("n", "<LEADER>pe", ":PerfPickEvent<CR>", opts)
 
@@ -135,14 +136,25 @@ If the `dwarf` option creates files that are too large or take too long to proce
 However, this requires that your program and all libraries have been compiled with `--fno-omit-frame-pointer` and you may find that the line numbers are slightly off.
 For more information, see the documentation of perf.
 
+If you are using another profiler, you will need to generate a `perf.log` file that stores data in the flamegraph format, i.e. as a list of `;`-separated stack traces with a count at the end in each line.
+For example:
+
+```
+/path/to/src_1.cpp:30;/path/to/src_2.cpp:27;/path/to/src_1.cpp:27 47
+/path/to/src_1.cpp:30;/path/to/src_2.cpp:50 20
+/path/to/src_1.cpp:10;/path/to/src_3.cpp:20;/path/to/src_2.cpp:15 7
+/path/to/src_1.cpp:10;/path/to/src_3.cpp:20;/path/to/src_2.cpp:50 92
+```
+
 ## Commands
 
 ### Load profiling data
 
 * `:PerfLoadFlat` loads flat perf data. Obviously you will not be able to find callers of functions in this mode.
 * `:PerfLoadCallGraph` loads full call graph perf data. This may take a while.
+* `:PerfLoadFlameGraph` loads data from a `perf.log` file in flamegraph format.
 
-If there is no `perf.data` file in your working directory, you will be asked to locate one. If `annotate_after_load` is set this will immediately annotate all buffers.
+If there is no `perf.data` or `perf.log` file respectively in your working directory, you will be asked to locate one. If `annotate_after_load` is set this will immediately annotate all buffers.
 
 ### Control how annotations are displayed
 
