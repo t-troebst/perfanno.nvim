@@ -1,17 +1,27 @@
--- util.lua
--- Defines various utility functions used throughout the plugin
+--- Defines various utility functions used throughout the plugin.
+
 local M = {}
 
+--- Initialize table at key with value if its currently nil.
+-- @param tab Table to initialize.
+-- @param key Key where we will initialize.
+-- @param value Value that will be set if tab[key] is nil.
 function M.init(tab, key, value)
     if not tab[key] then
         tab[key] = value
     end
 end
 
+--- Rounds number to the closest integer.
+-- @param f Number to round.
+-- @return Closest integer.
 function M.round(f)
     return math.floor(f + 0.5)  -- good enough...
 end
 
+--- Iterator that iterates through consecutive pairs in a list.
+-- @param list List to iterate over.
+-- @return Pairwise iterator function.
 function M.pairwise(list)
     local i = 0
     local n = #list - 1
@@ -25,6 +35,10 @@ function M.pairwise(list)
     end
 end
 
+--- Computes minimum of two values but interprets nil as infinity.
+-- @param x First value.
+-- @param y Second value.
+-- @return Minimum of x and y where nil compares larger than everything.
 function M.min_nil(x, y)
     if x == nil then
         return y
@@ -37,6 +51,10 @@ function M.min_nil(x, y)
     return math.min(x,  y)
 end
 
+--- Computes minimum of two values but interprets nil as minus infinity.
+-- @param x First value.
+-- @param y Second value.
+-- @return Maximum of x and y where nil compares smaller than everything.
 function M.max_nil(x, y)
     if x == nil then
         return y
@@ -49,6 +67,9 @@ function M.max_nil(x, y)
     return math.max(x,  y)
 end
 
+--- Determines whether something is a Lua table.
+-- @param tab Potential table.
+-- @return true if tab is a table, false otherwise.
 function M.is_table(tab)
     if type(tab) == "table" then
         return true
@@ -57,6 +78,9 @@ function M.is_table(tab)
     return false
 end
 
+--- Gets the range of the current visual selection.
+-- @return start line, start column, end line, end column where lines and columns are both
+--         inclusive, lines are 1-indexed and columns are 0-indexed.
 function M.visual_selection_range()
     local _, csrow, cscol, _ = unpack(vim.fn.getpos("'<"))
     local _, cerow, cecol, _ = unpack(vim.fn.getpos("'>"))

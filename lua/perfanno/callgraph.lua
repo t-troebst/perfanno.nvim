@@ -56,8 +56,8 @@ local function process_traces(traces)
         for _, frame in ipairs(trace.frames) do
             local symbol, file, linenr = frame_unpack(frame)
 
-            if not visited_lines[{file, linenr}] then
-                visited_lines[{file, linenr}] = true
+            if not visited_lines[file .. ":" .. linenr] then
+                visited_lines[file .. ":" .. linenr] = true
 
                 util.init(node_info, file, {})
                 util.init(node_info[file], linenr, {count = 0, out_counts = {}, in_counts = {}})
@@ -68,8 +68,8 @@ local function process_traces(traces)
 
             if symbol then
                 -- Symbol counts need to be done separately because of potential recursion.
-                if not visited_symbols[{file, symbol}] then
-                    visited_symbols[{file, symbol}] = true
+                if not visited_symbols[file .. ":" .. symbol] then
+                    visited_symbols[file .. ":" .. symbol] = true
 
                     util.init(symbols, file, {})
                     util.init(symbols[file], symbol, {count = 0, min_line = nil, max_line = nil})
@@ -136,7 +136,7 @@ end
 -- @param event Event that selects which call graph we will use.
 -- @param nodes List of {file, linenr} pairs.
 -- @return Table result such that result[file][linenr] represents the amount of stack traces that go
---         through file:linenr right after they leave one of the given nodes.
+-- through file:linenr right after they leave one of the given nodes.
 function M.merge_out_counts(event, nodes)
     local result = {}
 

@@ -1,13 +1,11 @@
 -- Main entry point, defines nice wrappers for usability.
 
-local callgraph = require("perfanno.callgraph")
-local parse_perf = require("perfanno.parse_perf")
-local annotate = require("perfanno.annotate")
 local config = require("perfanno.config")
-local finder  -- either telescope or vim.ui.select
 
 local M = {}
 
+--- Sets up the plugin with the provided options.
+-- @param opt Options for the plugin. See :help perfanno-configuration.
 function M.setup(opts)
     config.load(opts)
 
@@ -32,18 +30,15 @@ function M.setup(opts)
     vim.cmd[[command PerfHottestCallersFunction :lua require("perfanno").find_hottest_callers_function()]]
     vim.cmd[[command -range PerfHottestCallersSelection :lua require("perfanno").find_hottest_callers_selection()]]
 
-    if config.values.telescope.enabled then
-        finder = require("telescope").extensions.perfanno
-    else
-        finder = require("perfanno.find_hottest")
-    end
-
     -- Setup automatic annotation of new buffers.
     if config.values.annotate_on_open then
         vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
     end
 end
 
+--- Checks if a file exists, if not asks the user, finally gives result to continuation.
+-- @param default Default file such as "perf.data" to look for.
+-- @param cont Continuation that will be called if the user selects a file.
 local function get_data_file(default, cont)
     if vim.fn.filereadable(default) == 1 then
         cont(default)
@@ -54,11 +49,26 @@ local function get_data_file(default, cont)
             completion = "file"
         }
 
-        vim.ui.input(input_opts, cont)
+        vim.ui.input(input_opts, function(file)
+            if not file then
+                return
+            end
+
+            if vim.fn.filereadable(file) == 0 then
+                vim.notify("Could not read file!")
+                return
+            end
+
+            cont(file)
+        end)
     end
 end
 
+--- Loads stack traces in our format (see :help perfanno-extensions) into the callgraph.
+-- Note: if enabled via the config, this also annotates all buffers.
+-- @param traces Stack traces to load.
 function M.load_traces(traces)
+    local callgraph = require("perfanno.callgraph")
     callgraph.load_traces(traces)
 
     if #callgraph.events == 1 then
@@ -72,18 +82,22 @@ function M.load_traces(traces)
     end
 end
 
+--- Loads perf data into the call graph *without* call graph information (flat).
 function M.load_perf_flat()
     get_data_file("perf.data", function(perf_data)
-        M.load_traces(parse_perf.perf_flat(perf_data))
+        M.load_traces(require("perfanno.parse_perf").perf_flat(perf_data))
     end)
 end
 
+--- Loads perf data into the call graph *with* call graph information.
 function M.load_perf_callgraph()
     get_data_file("perf.data", function(perf_data)
-        M.load_traces(parse_perf.perf_callgraph(perf_data))
+        M.load_traces(require("perfanno.parse_perf").perf_callgraph(perf_data))
     end)
 end
 
+--- Parses a file containing stack traces in the flamegraph.pl format.
+-- @param perf_log File to parse.
 local function parse_flamegraph(perf_log)
     local traces = {}
 
@@ -103,19 +117,29 @@ local function parse_flamegraph(perf_log)
     return {time = traces}
 end
 
+--- Loads flamegraph file into the call graph.
 function M.load_flamegraph()
     get_data_file("perf.log", function(perf_log)
         M.load_traces(parse_flamegraph(perf_log))
     end)
 end
 
+--- Asks the user to pick a new event from the availabe options.
+-- @param cont Continuation that gets executed if we have a valid event afterwards.
 function M.pick_event(cont)
-    assert(callgraph.is_loaded(), "Callgraph must be loaded before we can pick an event!")
+    local callgraph = require("perfanno.callgraph")
+
+    if not callgraph.is_loaded() then
+        vim.notify("No callgraph has been loaded!")
+        return
+    end
 
     vim.ui.select(callgraph.events, {prompt = "Select event type to annotate: "}, function(event)
         config.selected_event = event or config.selected_event
 
         if config.selected_event then
+            local annotate = require("perfanno.annotate")
+
             if annotate.is_toggled() then
                 annotate.annotate()
             end
@@ -127,8 +151,15 @@ function M.pick_event(cont)
     end)
 end
 
+--- Helper that calls a continuation with the current event, if possible, or asks user for one.
+-- @param cont Continuation that will be called if we get a valid event.
 function M.with_event(cont)
-    assert(callgraph.is_loaded(), "Callgraph must be loaded!")
+    local callgraph = require("perfanno.callgraph")
+
+    if not callgraph.is_loaded() then
+        vim.notify("No callgraph has been loaded!")
+        return
+    end
 
     if config.selected_event and callgraph.callgraphs[config.selected_event] then
         cont()
@@ -137,22 +168,27 @@ function M.with_event(cont)
     end
 end
 
+--- Annotates all buffers.
 function M.annotate()
-    M.with_event(annotate.annotate)
+    M.with_event(require("perfanno.annotate").annotate)
 end
 
+--- Toggles annotations in all buffers.
 function M.toggle_annotations()
-    M.with_event(annotate.toggle_annotations)
+    M.with_event(require("perfanno.annotate").toggle_annotations)
 end
 
+--- Annotates the function that contains the cursor.
 function M.annotate_function()
-    M.with_event(annotate.annotate_function)
+    M.with_event(require("perfanno.annotate").annotate_function)
 end
 
+--- Annotates the current visual selection.
 function M.annotate_selection()
-    M.with_event(annotate.annotate_selection)
+    M.with_event(require("perfanno.annotate").annotate_selection)
 end
 
+--- Cycles between the different formats (see config), usually percentage and absolute counts.
 function M.cycle_format()
     config.selected_format = config.selected_format + 1
 
@@ -160,31 +196,49 @@ function M.cycle_format()
         config.selected_format = 1
     end
 
+    local annotate = require("perfanno.annotate")
+
     if annotate.should_annotate() then
         annotate.annotate()
     end
 end
 
+--- Annotate the current buffer if possible and annotations aren't toggled off.
 function M.try_annotate_current()
+    local annotate = require("perfanno.annotate")
+
     if annotate.should_annotate() then
         annotate.annotate_buffer()
     end
 end
 
+--- Returns perfanno telescope extension, or fallback module if that is unavailable / disabled.
+local function finder()
+    if config.values.telescope.enabled then
+        return require("telescope").extensions.perfanno
+    else
+        return require("perfanno.find_hottest")
+    end
+end
+
+--- Opens finder with the hottest symbols (functions) in the project for the current event.
 function M.find_hottest_symbols()
-    M.with_event(finder.find_hottest_symbols)
+    M.with_event(finder().find_hottest_symbols)
 end
 
+--- Opens finder with the hottest lines of code in the project for the current event.
 function M.find_hottest_lines()
-    M.with_event(finder.find_hottest_lines)
+    M.with_event(finder().find_hottest_lines)
 end
 
+--- Opens finder with the hottest callers of the function that contains the cursor.
 function M.find_hottest_callers_function()
-    M.with_event(finder.find_hottest_callers_function)
+    M.with_event(finder().find_hottest_callers_function)
 end
 
+--- Opens finder with the hottest callers of the current visual selection.
 function M.find_hottest_callers_selection()
-    M.with_event(finder.find_hottest_callers_selection)
+    M.with_event(finder().find_hottest_callers_selection)
 end
 
 return M
