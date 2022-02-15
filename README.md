@@ -64,6 +64,7 @@ keymap("v", "<LEADER>pa", ":PerfAnnotateSelection<CR>", opts)
 keymap("n", "<LEADER>pt", ":PerfToggleAnnotations<CR>", opts)
 
 keymap("n", "<LEADER>ph", ":PerfHottestLines<CR>", opts)
+keymap("n", "<LEADER>ps", ":PerfHottestSymbols<CR>", opts)
 keymap("n", "<LEADER>pc", ":PerfHottestCallersFunction<CR>", opts)
 keymap("v", "<LEADER>pc", ":PerfHottestCallersSelection<CR>", opts)
 ```
