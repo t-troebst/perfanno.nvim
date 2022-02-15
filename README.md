@@ -235,3 +235,4 @@ Note: The file paths in the traces should be full, unescaped paths in the canoni
 * Add support for `:FindHottestCallers` with increased depth.
 * Add `:FindHottestCallees` which is essentially `:FindHottestLines` but relative to stack traces that go through a certain selection.
 * Perf can take quite a while to generate reports from large files, maybe add some kind of caching?
+* On that note, add some kind of progress indication while reading the report?
