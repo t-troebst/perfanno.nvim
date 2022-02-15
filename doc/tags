@@ -5,6 +5,7 @@
 :PerfHottestLines	perfanno.txt	/*:PerfHottestLines*
 :PerfHottestLinesFunction	perfanno.txt	/*:PerfHottestLinesFunction*
 :PerfHottestLinesSelection	perfanno.txt	/*:PerfHottestLinesSelection*
+:PerfHottestSymbols	perfanno.txt	/*:PerfHottestSymbols*
 :PerfLoadCallGraph	perfanno.txt	/*:PerfLoadCallGraph*
 :PerfLoadFlameGraph	perfanno.txt	/*:PerfLoadFlameGraph*
 :PerfLoadFlat	perfanno.txt	/*:PerfLoadFlat*
