@@ -188,18 +188,18 @@ local traces = {
        {
            count = 42,
            frames = {
-                "/home/user/Project/src_1.cpp:57",
-                "/home/user/Project/src_2.cpp:32",
-                "/home/user/Project/src_1.cpp:42"
+                "symbol1 /home/user/Project/src_1.cpp:57",
+                "symbol2 /home/user/Project/src_2.cpp:32",
+                "symbol1 /home/user/Project/src_1.cpp:42"
            }
        },
        {
            count = 99,
            frames = {
-                "/home/user/Project/src_1.cpp:20",
+                "symbol3 /home/user/Project/src_1.cpp:20",
                 "0x1231232",
                 "__foo_bar",
-                "/home/user/Project/src_3.cpp:50"
+                "symbol4 /home/user/Project/src_3.cpp:50"
            }
        },
        -- more traces...
@@ -215,11 +215,10 @@ local traces = {
 require("perfanno").load_traces(traces)
 ```
 
-A stack trace is represented by a `count` which tells us how often that exact
-trace occurred and a list of `frames`. Each stack frame should start with a
-`symbol` followed by `fullpath`:`linenum`. If it does not fit into this
-format, it will simply be interpreted as an arbitrary symbol. You may also
-specify a frame directly in the format:
+A stack trace is represented by a `count` which tells us how often that exact trace occurred and a list of `frames`.
+Each stack frame should start with a `symbol` followed by `fullpath`:`linenum`.
+If it does not fit into this format, it will simply be interpreted as an arbitrary symbol.
+You may also specify a frame directly in the format:
 
 ```lua
 {symbol = "symbol1", file = "/home/user/Project/src_1.cpp", linenr = 42}
