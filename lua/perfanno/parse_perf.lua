@@ -2,6 +2,7 @@
 -- This module provides wrappers around perf to generate our stack trace format.
 
 local M = {}
+local util = require("perfanno.util")
 
 -- Execute cmd and return the stdout result
 local function get_command_output(cmd, silent)
@@ -20,7 +21,7 @@ end
 -- Obtains simple flat profile from perf (no callgraph)
 function M.perf_flat(perf_data)
     local esc = vim.fn.fnameescape(perf_data)
-    local cmd = "perf report -g none -F sample,srcline --stdio --full-source-path -i " .. esc
+    local cmd = "perf report -g none -F sample,srcline,symbol --stdio --full-source-path -i " .. esc
     local raw_data = get_command_output(cmd, true)
 
     local result = {}
@@ -33,10 +34,17 @@ function M.perf_flat(perf_data)
             result[event] = {}
             current_event = event
         else
-            local count, address = line:match("^%s*(%d+)%s+(.*[+:]%d+)")
+            local count, file, sep, linenr, symbol = line:match("^%s*(%d+)%s+(.-)([+:])(%d+)%s+%[%.%]%s*(.*)")
 
-            if count and address and tonumber(count) > 0 then
-                table.insert(result[current_event], {count = tonumber(count), frames = {address}})
+            local success = count and file and sep and linenr and symbol
+
+            if success and tonumber(count) > 0 then
+                if vim.startswith(file, "/") then
+                    local trace = {symbol = symbol, file = file, linenr = tonumber(linenr)}
+                    table.insert(result[current_event], {count = tonumber(count), frames = {trace}})
+                else
+                    table.insert(result[current_event], {count = tonumber(count), frames = {{symbol = file .. sep .. linenr}}})
+                end
             end
         end
     end
@@ -66,12 +74,17 @@ function M.perf_callgraph(perf_data)
                 local tracedata = {count = tonumber(count), frames = {}}
 
                 for func in traceline:gmatch("[^;]+") do
-                    local file = func:match("(/.*:%d+)")
+                    local symbol, file, linenr = func:match("^(.-)%s*(/.*):(%d+)")
 
-                    if file then
-                        table.insert(tracedata.frames, file)
+                    if file and linenr then
+                        if symbol and symbol == "" then
+                            symbol = nil
+                        end
+
+                        local frame = {symbol = symbol, file = file, linenr = tonumber(linenr)}
+                        table.insert(tracedata.frames, frame)
                     else -- address, symbol, etc. (no debug info)
-                        table.insert(tracedata.frames, func)
+                        table.insert(tracedata.frames, {symbol = func})
                     end
                 end
 

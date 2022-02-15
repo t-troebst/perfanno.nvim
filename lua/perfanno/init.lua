@@ -27,6 +27,7 @@ function M.setup(opts)
     vim.cmd[[command -range PerfAnnotateSelection :lua require("perfanno").annotate_selection()]]
 
     -- Commands that find hot code lines
+    vim.cmd[[command PerfHottestSymbols :lua require("perfanno").find_hottest_symbols()]]
     vim.cmd[[command PerfHottestLines :lua require("perfanno").find_hottest_lines()]]
     vim.cmd[[command PerfHottestCallersFunction :lua require("perfanno").find_hottest_callers_function()]]
     vim.cmd[[command -range PerfHottestCallersSelection :lua require("perfanno").find_hottest_callers_selection()]]
@@ -168,6 +169,10 @@ function M.try_annotate_current()
     if annotate.should_annotate() then
         annotate.annotate_buffer()
     end
+end
+
+function M.find_hottest_symbols()
+    M.with_event(finder.find_hottest_symbols)
 end
 
 function M.find_hottest_lines()

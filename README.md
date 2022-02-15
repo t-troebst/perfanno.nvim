@@ -173,6 +173,7 @@ If there is more than one event that was loaded, then you will be asked to pick 
 ### Find hot lines
 
 * `:PerfHottestLines` opens a telescope finder with the hottest lines according to the current annotations.
+* `:PerfHottestSymbols` opens a telescope finder with the hottest symbols (i.e. functions typically) according to the current annotations.
 * `:PerfHottestCallersSelection` opens a telescope finder with the hottest lines that lead directly to the currently selected lines.
 * `:PerfHottestCallersFunction` works just like `:PerfHottestCallersSelection` but selects the function that contains the cursor via treesitter.
 
@@ -214,14 +215,21 @@ local traces = {
 require("perfanno").load_traces(traces)
 ```
 
-A stack trace is represented by a `count` which tells us how often that exact trace occurred and a list of `frames`.
-Each stack frame should either start with `/` and have the format `/full/file/path.cpp:linenum` or it can be anything else.
-This format is very similar to what the popular flamegraph tool expects, so it should not be too hard to generate this type of information with most profilers.
+A stack trace is represented by a `count` which tells us how often that exact
+trace occurred and a list of `frames`. Each stack frame should start with a
+`symbol` followed by `fullpath`:`linenum`. If it does not fit into this
+format, it will simply be interpreted as an arbitrary symbol. You may also
+specify a frame directly in the format:
+
+```lua
+{symbol = "symbol1", file = "/home/user/Project/src_1.cpp", linenr = 42}
+```
 
 Note: The file paths in the traces should be full, unescaped paths in the canonical format, i.e. `/full/file path/to/source.cpp:35` instead of `/full/file\ path//to/../to/source.cpp:35`.
 
 ## Future Goals
 
+* General clean up, refactoring, and testing - add more comments, etc...
 * Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder).
 * Add some kind of tree-based call graph exploration.
 * Add support for `:FindHottestCallers` with increased depth.

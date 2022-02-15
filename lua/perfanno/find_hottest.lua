@@ -9,20 +9,25 @@ local util = require("perfanno.util")
 local M = {}
 
 local function go_to_entry(entry)
-    if entry and entry[1] ~= "symbol" then
+    if entry and entry[2] ~= "symbol" then
         -- Isn't there a way to do this via the lua API??
-        vim.cmd(":edit +" .. entry[2] .. " " .. vim.fn.fnameescape(entry[1]))
+        vim.cmd(":edit +" .. entry[3] .. " " .. vim.fn.fnameescape(entry[2]))
     end
 end
 
 local function format_entry(total)
     return function(entry)
-        local fmt = config.format(entry[3], total)
+        local fmt = config.format(entry[4], total)
+        local short_path = vim.fn.fnamemodify(entry[2], ":~:.")
 
-        if entry[1] == "symbol" then
-            return fmt .. " " .. entry[2]
+        if entry[2] == "symbol" then
+            return fmt .. " " .. entry[3]
+        end
+
+        if entry[1] ~= "" then
+            return fmt .. " " .. entry[1] .. " at " .. short_path .. ":" .. entry[3]
         else
-            return fmt .. " " .. entry[1] .. ":" .. entry[2]
+            return fmt .. " " .. short_path .. ":" .. entry[3]
         end
     end
 end
@@ -37,13 +42,48 @@ function M.find_hottest_lines(event)
     for file, file_tbl in pairs(callgraph.callgraphs[event].node_info) do
         for linenr, node_info in pairs(file_tbl) do
             if config.format(node_info.count, callgraph.callgraphs[event].total_count) then
-                table.insert(entries, {file, linenr, node_info.count})
+                table.insert(entries, {"", file, linenr, node_info.count})
             end
         end
     end
 
     table.sort(entries, function(e1, e2)
-        return e1[3] > e2[3]
+        return e1[4] > e2[4]
+    end)
+
+    local opts = {
+        prompt = "Hottest lines: ",
+        format_item = format_entry(callgraph.callgraphs[event].total_count),
+        kind = "file"
+    }
+
+    vim.ui.select(entries, opts, go_to_entry)
+end
+
+function M.find_hottest_symbols(event)
+    assert(callgraph.is_loaded(), "Callgraph is not loaded!")
+    event = event or config.selected_event
+    assert(callgraph.callgraphs[event], "Invalid event!")
+
+    local entries = {}
+    local cg = callgraph.callgraphs[event]
+
+    for file, syms in pairs(cg.symbols) do
+        for sym, info in pairs(syms) do
+            if config.format(info.count, cg.total_count) then
+                table.insert(entries, {sym, file, info.min_line, info.count})
+            end
+        end
+    end
+
+    for sym, info in pairs(cg.node_info.symbol) do
+        if config.format(info.count, cg.total_count) then
+            table.insert(entries, {"", "symbol", sym, info.count})
+        end
+    end
+
+    table.sort(entries, function(e1, e2)
+        return e1[4] > e2[4]
     end)
 
     local opts = {
@@ -76,13 +116,13 @@ local function find_hottest_callers(event, file, line_begin, line_end)
     for in_file, file_tbl in pairs(in_counts) do
         for in_line, count in pairs(file_tbl) do
             if config.format(count, total_count) then
-                table.insert(entries, {in_file, in_line, count})
+                table.insert(entries, {"", in_file, in_line, count})
             end
         end
     end
 
     table.sort(entries, function(e1, e2)
-        return e1[3] > e2[3]
+        return e1[4] > e2[4]
     end)
 
     local opts = {

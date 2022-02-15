@@ -18,35 +18,42 @@ local function hottest_table(entries, total_count)
     local opts = {results = entries}
 
     table.sort(opts.results, function(e1, e2)
-        return e1[3] > e2[3]
+        return e1[4] > e2[4]
     end)
 
     opts.entry_maker = function(entry)
-        local fmt = config.format(entry[3], total_count)
+        local fmt = config.format(entry[4], total_count)
 
         if not fmt then
             return
         end
 
-        if entry[1] == "symbol" then
+        if entry[2] == "symbol" then
             return {
                 lnum = 0,
-                display = fmt .. " " .. entry[2],
-                ordinal = entry[2],
+                display = fmt .. " " .. entry[3],
+                ordinal = entry[3],
                 path = "",
                 row = 0,
                 col = 0,
             }
         end
 
-        local short_path = vim.fn.fnamemodify(entry[1], ":~:.")
+        local short_path = vim.fn.fnamemodify(entry[2], ":~:.")
+        local display
+
+        if entry[1] and entry[1] ~= "" then
+            display = fmt .. " " .. entry[1] .. " at " .. short_path .. ":" .. entry[3]
+        else
+            display = fmt .. " " .. short_path .. ":" .. entry[3]
+        end
 
         return {
-            lnum = entry[2],
-            display = fmt .. " " .. short_path .. ":" .. entry[2],
-            ordinal = short_path .. ":" .. entry[2],
-            path = entry[1],
-            row = entry[2],
+            lnum = entry[3],
+            display = display,
+            ordinal = short_path .. ":" .. entry[3],
+            path = entry[2],
+            row = entry[3],
             col = 0
         }
     end
@@ -95,8 +102,43 @@ local function find_hottest_lines(event)
 
     for file, file_tbl in pairs(cg.node_info) do
         for linenr, node_info in pairs(file_tbl) do
-            table.insert(entries, {file, linenr, node_info.count})
+            table.insert(entries, {"", file, linenr, node_info.count})
         end
+    end
+
+    local function annotate_file(bufnr, file)
+        if not cg.node_info[file] then
+            return
+        end
+
+        for linenr, node_info in pairs(cg.node_info[file]) do
+            annotate.add_annotation(bufnr, linenr, node_info.count, cg.total_count, cg.max_count)
+        end
+    end
+
+    pickers.new({}, {
+        prompt_title = "",
+        finder = hottest_table(entries, callgraph.callgraphs[event].total_count),
+        sorter = tconf.file_sorter{},
+        previewer = annotated_previewer(annotate_file),
+    }):find()
+end
+
+local function find_hottest_symbols(event)
+    event = event or config.selected_event
+    assert(callgraph.callgraphs[event], "Invalid event!")
+
+    local entries = {}
+    local cg = callgraph.callgraphs[event]
+
+    for file, syms in pairs(cg.symbols) do
+        for sym, info in pairs(syms) do
+            table.insert(entries, {sym, file, info.min_line, info.count})
+        end
+    end
+
+    for sym, info in pairs(cg.node_info.symbol) do
+        table.insert(entries, {"", "symbol", sym, info.count})
     end
 
     local function annotate_file(bufnr, file)
@@ -137,7 +179,7 @@ local function find_hottest_callers(file, line_begin, line_end, event)
 
     for in_file, file_tbl in pairs(in_counts) do
         for in_line, count in pairs(file_tbl) do
-            table.insert(entries, {in_file, in_line, count})
+            table.insert(entries, {"", in_file, in_line, count})
             total_count = total_count + count
             max_count = math.max(max_count, count)
         end
@@ -165,6 +207,10 @@ local function find_hottest()
     perfanno.with_event(find_hottest_lines)
 end
 
+local function find_hottest_syms()
+    perfanno.with_event(find_hottest_symbols)
+end
+
 local function find_hottest_callers_function()
     perfanno.with_event(function()
         local file = vim.fn.expand("%:p"):gsub("/+", "/")
@@ -190,6 +236,7 @@ end
 return telescope.register_extension {
     exports = {
         find_hottest_lines = find_hottest,
+        find_hottest_symbols = find_hottest_syms,
         find_hottest_callers_function = find_hottest_callers_function,
         find_hottest_callers_selection = find_hottest_callers_selection,
     }

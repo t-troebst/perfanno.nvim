@@ -25,6 +25,38 @@ function M.pairwise(list)
     end
 end
 
+function M.min_nil(x, y)
+    if x == nil then
+        return y
+    end
+
+    if y == nil then
+        return x
+    end
+
+    return math.min(x,  y)
+end
+
+function M.max_nil(x, y)
+    if x == nil then
+        return y
+    end
+
+    if y == nil then
+        return x
+    end
+
+    return math.max(x,  y)
+end
+
+function M.is_table(tab)
+    if type(tab) == "table" then
+        return true
+    end
+
+    return false
+end
+
 function M.visual_selection_range()
     local _, csrow, cscol, _ = unpack(vim.fn.getpos("'<"))
     local _, cerow, cecol, _ = unpack(vim.fn.getpos("'>"))
