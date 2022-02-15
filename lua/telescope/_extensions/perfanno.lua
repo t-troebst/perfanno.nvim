@@ -111,6 +111,10 @@ local function find_hottest_callers_function()
     perfanno.with_event(function()
         local entries = find_hottest.hottest_callers_function_table(config.selected_event)
 
+        if not entries then
+            return
+        end
+
         pickers.new({}, {
             prompt_title = "",
             finder = finder_from_table(entries),
@@ -123,6 +127,10 @@ end
 local function find_hottest_callers_selection()
     perfanno.with_event(function()
         local entries = find_hottest.hottest_callers_selection_table(config.selected_event)
+
+        if not entries then
+            return
+        end
 
         pickers.new({}, {
             prompt_title = "",
