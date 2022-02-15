@@ -1,32 +1,32 @@
--- Main entry point, defines nice wrappers for usability
+-- Main entry point, defines nice wrappers for usability.
 
 local callgraph = require("perfanno.callgraph")
 local parse_perf = require("perfanno.parse_perf")
 local annotate = require("perfanno.annotate")
 local config = require("perfanno.config")
-local finder -- either telescope or vim.ui.select
+local finder  -- either telescope or vim.ui.select
 
 local M = {}
 
 function M.setup(opts)
     config.load(opts)
 
-    -- Commands for loading call graph information via perf / flamegraph
+    -- Commands for loading call graph information via perf / flamegraph.
     vim.cmd[[command PerfLoadFlat :lua require("perfanno").load_perf_flat()]]
     vim.cmd[[command PerfLoadCallGraph :lua require("perfanno").load_perf_callgraph()]]
     vim.cmd[[command PerfLoadFlameGraph :lua require("perfanno").load_flamegraph()]]
 
-    -- Commands that control what and how to annotate
+    -- Commands that control what and how to annotate.
     vim.cmd[[command PerfPickEvent :lua require("perfanno").pick_event()]]
     vim.cmd[[command PerfCycleFormat :lua require("perfanno").cycle_format()]]
 
-    -- Commands that perform annotations
+    -- Commands that perform annotations.
     vim.cmd[[command PerfAnnotate :lua require("perfanno").annotate()]]
     vim.cmd[[command PerfToggleAnnotations :lua require("perfanno").toggle_annotations()]]
     vim.cmd[[command PerfAnnotateFunction :lua require("perfanno").annotate_function()]]
     vim.cmd[[command -range PerfAnnotateSelection :lua require("perfanno").annotate_selection()]]
 
-    -- Commands that find hot code lines
+    -- Commands that find hot code lines.
     vim.cmd[[command PerfHottestSymbols :lua require("perfanno").find_hottest_symbols()]]
     vim.cmd[[command PerfHottestLines :lua require("perfanno").find_hottest_lines()]]
     vim.cmd[[command PerfHottestCallersFunction :lua require("perfanno").find_hottest_callers_function()]]
@@ -38,7 +38,7 @@ function M.setup(opts)
         finder = require("perfanno.find_hottest")
     end
 
-    -- Setup automatic annotation of new buffers
+    -- Setup automatic annotation of new buffers.
     if config.values.annotate_on_open then
         vim.cmd[[autocmd BufRead * :lua require("perfanno").try_annotate_current()]]
     end

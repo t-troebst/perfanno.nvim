@@ -1,17 +1,23 @@
--- callgraph.lua
--- This file deals with transforming stack traces into a callgraph to allow for the
--- core functionality of this plugin.
+--- Deals with core functionality: storing and and processing call graphs.
 
 local util = require("perfanno.util")
 
 local M = {}
 
+--- Separates frame into symbol, file, and line number.
+-- @param frame Either a string of the form "{symbol} {file}:{linenr}" where file is a full file
+--        path, or a table with entries for symbol, file, and linenr.
+-- @return symbol, file, line number File will be cleaned up into canonical
+--         format. If we don't have both a file *and* a line number, return nil,
+--         "symbol", symbol name instead.
 local function frame_unpack(frame)
     if util.is_table(frame) then
+        -- TODO: in some cases we might have a file but no line number
         if not frame.file or not frame.linenr then
             return nil, "symbol", frame.symbol
         end
 
+        frame.file = vim.loop.fs_realpath(frame.file) or frame.file
         return frame.symbol, frame.file, frame.linenr
     end
 
@@ -22,25 +28,31 @@ local function frame_unpack(frame)
             symbol = nil
         end
 
-        return symbol, file, tonumber(linenr)
+        return symbol, vim.loop.fs_realpath(file), tonumber(linenr)
     end
 
     return nil, "symbol", frame
 end
 
+--- Processes a list of stack traces into the call graph information.
+-- @param traces List of tables of the form {count = 15, frames = {f1, f2, f3, ...}}. The count
+--        represents how many times this exact stack trace occurs and each frame should be in the
+--        format expected by frame_unpack. See also :help perfanno-extensions.
+-- @return node info, total count, max count, symbols
+-- TODO: document more
 local function process_traces(traces)
     local node_info = {symbol = {}}
     local total_count = 0
     local max_count = 0
     local symbols = {}
 
-    -- Compute basic node counts for annotations
     for _, trace in ipairs(traces) do
-        local visited_lines = {} -- needed to get sane results with recursion
-        local visited_symbols = {}
+        local visited_lines = {}  -- needed to get sane results with recursion
+        local visited_symbols = {}  -- ditto
 
         total_count = total_count + trace.count
 
+        -- Compute basic node counts for annotations.
         for _, frame in ipairs(trace.frames) do
             local symbol, file, linenr = frame_unpack(frame)
 
@@ -55,8 +67,9 @@ local function process_traces(traces)
             end
 
             if symbol then
-                if not visited_symbols[file .. ":" .. symbol] then
-                    visited_symbols[file .. ":" .. symbol] = true
+                -- Symbol counts need to be done separately because of potential recursion.
+                if not visited_symbols[{file, symbol}] then
+                    visited_symbols[{file, symbol}] = true
 
                     util.init(symbols, file, {})
                     util.init(symbols[file], symbol, {count = 0, min_line = nil, max_line = nil})
@@ -64,14 +77,17 @@ local function process_traces(traces)
                     symbols[file][symbol].count = symbols[file][symbol].count + trace.count
                 end
 
-                symbols[file][symbol].min_line = util.min_nil(symbols[file][symbol].min_line, linenr)
-                symbols[file][symbol].max_line = util.max_nil(symbols[file][symbol].min_line, linenr)
+                -- Useful to jump to the symbol later.
+                symbols[file][symbol].min_line =
+                    util.min_nil(symbols[file][symbol].min_line, linenr)
+                symbols[file][symbol].max_line =
+                    util.max_nil(symbols[file][symbol].min_line, linenr)
             end
         end
 
         local visited = {}
 
-        -- Compute in / out neighbor counts for caller / callee lookup
+        -- Compute in / out neighbor counts for caller / callee lookup.
         for frame1, frame2 in util.pairwise(trace.frames) do
             if not visited[{frame1, frame2}] then
                 table.insert(visited, {frame1, frame2})
@@ -94,6 +110,11 @@ local function process_traces(traces)
     return node_info, symbols, total_count, max_count
 end
 
+--- Merges the weighted in-degrees of nodes in the call graph.
+-- @param event Event that selects which call graph we will use.
+-- @param nodes List of {file, linenr} pairs.
+-- @return Table result such that result[file][linenr] represents the amount of stack traces that go
+--         through file:linenr right before they enter one of the given nodes.
 function M.merge_in_counts(event, nodes)
     local result = {}
 
@@ -111,6 +132,11 @@ function M.merge_in_counts(event, nodes)
     return result
 end
 
+--- Merges the weighted out-degrees of nodes in the call graph.
+-- @param event Event that selects which call graph we will use.
+-- @param nodes List of {file, linenr} pairs.
+-- @return Table result such that result[file][linenr] represents the amount of stack traces that go
+--         through file:linenr right after they leave one of the given nodes.
 function M.merge_out_counts(event, nodes)
     local result = {}
 
@@ -128,6 +154,8 @@ function M.merge_out_counts(event, nodes)
     return result
 end
 
+--- Loads given list of stack traces into call graph.
+-- @param traces Stack traces to be loaded. For format see :help perfanno-extensions.
 function M.load_traces(traces)
     M.events = {}
     M.callgraphs = {}
@@ -140,12 +168,21 @@ function M.load_traces(traces)
     end
 end
 
+--- Returns whether a suitable call graph is loaded.
+-- @return true if callgraph is loaded for at least one event.
 function M.is_loaded()
     if M.callgraphs and M.events and #M.events > 0 then
         return true
     end
 
     return false
+end
+
+--- Asserts whether call graph is loaded for given event.
+-- @param event Event to check for.
+function M.check_event(event)
+    assert(M.is_loaded(), "Callgraph is not loaded!")
+    assert(M.callgraphs[event], "Invalid event!")
 end
 
 return M
