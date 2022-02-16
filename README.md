@@ -229,7 +229,6 @@ Note: The file paths in the traces should be full, unescaped paths in the canoni
 
 ## Future Goals
 
-* General clean up, refactoring, and testing - add more comments, etc...
 * Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder).
 * Add some kind of tree-based call graph exploration.
 * Add support for `:FindHottestCallers` with increased depth.
