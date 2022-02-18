@@ -16,17 +16,17 @@ local find_hottest = require("perfanno.find_hottest")
 
 --- Creates a telescope finder based on a table of lines / symbols.
 -- @param entries Table to be used.
+-- @param total_count Total count of events for relative annotations.
 -- @return Returns the telescope finder.
-local function finder_from_table(entries)
-    local cg = callgraph.callgraphs[config.selected_event]
+local function finder_from_table(entries, total_count)
     local opts = {results = entries}
 
     opts.entry_maker = function(entry)
-        if not config.should_display(entry.count, cg.total_count) then
+        if not config.should_display(entry.count, total_count) then
             return nil
         end
 
-        local display = find_hottest.format_entry(entry, cg.total_count)
+        local display = find_hottest.format_entry(entry, total_count)
 
         return {
             lnum = entry.linenr or 1,
@@ -97,11 +97,11 @@ end
 --- Opens telescope finder to find hottest lines in the project.
 local function find_hottest_lines()
     perfanno.with_event(function()
-        local entries = find_hottest.hottest_lines_table(config.selected_event)
+        local entries, total_count = find_hottest.hottest_lines_table(config.selected_event)
 
         pickers.new({}, {
             prompt_title = "",
-            finder = finder_from_table(entries),
+            finder = finder_from_table(entries, total_count),
             sorter = tconf.file_sorter{},
             previewer = annotated_previewer(annotate_file)
         }):find()
@@ -111,11 +111,11 @@ end
 --- Opens telescope finder to find hottest symbols (functions) in the project.
 local function find_hottest_symbols()
     perfanno.with_event(function()
-        local entries = find_hottest.hottest_symbols_table(config.selected_event)
+        local entries, total_count = find_hottest.hottest_symbols_table(config.selected_event)
 
         pickers.new({}, {
             prompt_title = "",
-            finder = finder_from_table(entries),
+            finder = finder_from_table(entries, total_count),
             sorter = tconf.file_sorter{},
             previewer = annotated_previewer(annotate_file)
         }):find()
@@ -125,7 +125,7 @@ end
 --- Opens telescope finder to find the hottest callers of the function containing the cursor.
 local function find_hottest_callers_function()
     perfanno.with_event(function()
-        local entries = find_hottest.hottest_callers_function_table(config.selected_event)
+        local entries, total_count = find_hottest.hottest_callers_function_table(config.selected_event)
 
         if not entries then
             return
@@ -133,7 +133,7 @@ local function find_hottest_callers_function()
 
         pickers.new({}, {
             prompt_title = "",
-            finder = finder_from_table(entries),
+            finder = finder_from_table(entries, total_count),
             sorter = tconf.file_sorter{},
             previewer = annotated_previewer(annotate_file)
         }):find()
@@ -143,7 +143,7 @@ end
 --- Opens telescope finder to find the hottest callers of current visual selection.
 local function find_hottest_callers_selection()
     perfanno.with_event(function()
-        local entries = find_hottest.hottest_callers_selection_table(config.selected_event)
+        local entries, total_count = find_hottest.hottest_callers_selection_table(config.selected_event)
 
         if not entries then
             return
@@ -151,7 +151,7 @@ local function find_hottest_callers_selection()
 
         pickers.new({}, {
             prompt_title = "",
-            finder = finder_from_table(entries),
+            finder = finder_from_table(entries, total_count),
             sorter = tconf.file_sorter{},
             previewer = annotated_previewer(annotate_file)
         }):find()
