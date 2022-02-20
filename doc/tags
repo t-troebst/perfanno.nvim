@@ -9,6 +9,8 @@
 :PerfLoadCallGraph	perfanno.txt	/*:PerfLoadCallGraph*
 :PerfLoadFlameGraph	perfanno.txt	/*:PerfLoadFlameGraph*
 :PerfLoadFlat	perfanno.txt	/*:PerfLoadFlat*
+:PerfLuaProfileStart	perfanno.txt	/*:PerfLuaProfileStart*
+:PerfLuaProfileStop	perfanno.txt	/*:PerfLuaProfileStop*
 :PerfPickEvent	perfanno.txt	/*:PerfPickEvent*
 :PerfToggleAnnotations	perfanno.txt	/*:PerfToggleAnnotations*
 perfanno-commands	perfanno.txt	/*perfanno-commands*
