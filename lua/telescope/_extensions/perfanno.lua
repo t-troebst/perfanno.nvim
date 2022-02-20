@@ -7,7 +7,6 @@ local pickers = require("telescope.pickers")
 local previewers = require("telescope.previewers")
 local finders = require("telescope.finders")
 local tconf = require("telescope.config").values
-local actions = require("telescope.actions")
 local state = require("telescope.actions.state")
 
 local perfanno = require("perfanno")

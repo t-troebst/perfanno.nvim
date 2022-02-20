@@ -14,6 +14,10 @@ function M.setup(opts)
     vim.cmd[[command PerfLoadCallGraph :lua require("perfanno").load_perf_callgraph()]]
     vim.cmd[[command PerfLoadFlameGraph :lua require("perfanno").load_flamegraph()]]
 
+    -- Lua profiling via the internal LuaJit profiler
+    vim.cmd[[command PerfLuaProfileStart :lua require("perfanno.lua_profile").start()]]
+    vim.cmd[[command PerfLuaProfileStop :lua require("perfanno.lua_profile").stop()]]
+
     -- Commands that control what and how to annotate.
     vim.cmd[[command PerfPickEvent :lua require("perfanno").pick_event()]]
     vim.cmd[[command PerfCycleFormat :lua require("perfanno").cycle_format()]]
@@ -70,12 +74,6 @@ end
 function M.load_traces(traces)
     local callgraph = require("perfanno.callgraph")
     callgraph.load_traces(traces)
-
-    if #callgraph.events == 1 then
-        config.selected_event = callgraph.events[1]
-    else
-        config.selected_event = nil
-    end
 
     if callgraph.is_loaded() and config.values.annotate_after_load then
         M.annotate()
@@ -134,21 +132,27 @@ function M.pick_event(cont)
         return
     end
 
-    vim.ui.select(callgraph.events, {prompt = "Select event type to annotate: "}, function(event)
-        config.selected_event = event or config.selected_event
+    local new_cont = function()
+        local annotate = require("perfanno.annotate")
 
-        if config.selected_event then
-            local annotate = require("perfanno.annotate")
-
-            if annotate.is_toggled() then
-                annotate.annotate()
-            end
-
-            if cont then
-                cont()
-            end
+        if annotate.is_toggled() then
+            annotate.annotate()
         end
-    end)
+
+        if cont then
+            cont()
+        end
+    end
+
+    if #callgraph.events == 1 then
+        config.selected_event = callgraph.events[1]
+        new_cont()
+    else
+        vim.ui.select(callgraph.events, {prompt = "Select event type to annotate: "}, function(event)
+            config.selected_event = event or config.selected_event
+            new_cont()
+        end)
+    end
 end
 
 --- Helper that calls a continuation with the current event, if possible, or asks user for one.
