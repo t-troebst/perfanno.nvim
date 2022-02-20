@@ -15,8 +15,8 @@ function M.setup(opts)
     vim.cmd[[command PerfLoadFlameGraph :lua require("perfanno").load_flamegraph()]]
 
     -- Lua profiling via the internal LuaJit profiler
-    vim.cmd[[command PerfLuaProfileStart :lua require("perfanno.lua_profile").start()]]
-    vim.cmd[[command PerfLuaProfileStop :lua require("perfanno.lua_profile").stop()]]
+    vim.cmd[[command PerfLuaProfileStart :lua require("perfanno").lua_profile_start()]]
+    vim.cmd[[command PerfLuaProfileStop :lua require("perfanno").lua_profile_stop()]]
 
     -- Commands that control what and how to annotate.
     vim.cmd[[command PerfPickEvent :lua require("perfanno").pick_event()]]
@@ -120,6 +120,21 @@ function M.load_flamegraph()
     get_data_file("perf.log", function(perf_log)
         M.load_traces(parse_flamegraph(perf_log))
     end)
+end
+
+--- Starts a LuaJIT profiling run (just a wrapper for consistency).
+function M.lua_profile_start()
+    require("perfanno.lua_profile").start()
+end
+
+--- Stops the current LuaJIT profiling run and annotates if annotate_after_load is set.
+function M.lua_profile_stop()
+    require("perfanno.lua_profile").stop()
+    local callgraph = require("perfanno.callgraph")
+
+    if callgraph.is_loaded() and config.values.annotate_after_load then
+        M.annotate()
+    end
 end
 
 --- Asks the user to pick a new event from the availabe options.
