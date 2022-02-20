@@ -115,7 +115,7 @@ function M.hottest_callers_table(event, file, line_begin, line_end)
     for linenr, node_info in pairs(cg.node_info[file]) do
         if linenr >= line_begin and linenr <= line_end then
             table.insert(lines, {file, linenr})
-            total_count = total_count + node_info.count
+            total_count = total_count + node_info.rec_count
         end
     end
 
@@ -152,7 +152,7 @@ function M.hottest_callees_table(event, file, line_begin, line_end)
     for linenr, node_info in pairs(cg.node_info[file]) do
         if linenr >= line_begin and linenr <= line_end then
             table.insert(lines, {file, linenr})
-            total_count = total_count + node_info.count
+            total_count = total_count + node_info.rec_count
         end
     end
 

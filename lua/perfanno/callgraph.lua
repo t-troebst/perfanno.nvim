@@ -60,11 +60,15 @@ local function process_traces(traces)
                 visited_lines[file .. ":" .. linenr] = true
 
                 util.init(node_info, file, {})
-                util.init(node_info[file], linenr, {count = 0, out_counts = {}, in_counts = {}})
+                util.init(node_info[file], linenr, {count = 0, rec_count = 0,
+                                                    out_counts = {}, in_counts = {}})
 
                 node_info[file][linenr].count = node_info[file][linenr].count + trace.count
                 max_count = math.max(max_count, node_info[file][linenr].count)
             end
+
+            -- This counts how many times a line is called *including* recursive calls.
+            node_info[file][linenr].rec_count = node_info[file][linenr].rec_count + trace.count
 
             if symbol then
                 -- Symbol counts need to be done separately because of potential recursion.
@@ -85,25 +89,23 @@ local function process_traces(traces)
             end
         end
 
-        local visited = {}
 
         -- Compute in / out neighbor counts for caller / callee lookup.
+        -- Note: we *don't* do any recursion detection here because we will compare these numbers to
+        -- rec_count later!
         for frame1, frame2 in util.pairwise(trace.frames) do
-            if not visited[{frame1, frame2}] then
-                table.insert(visited, {frame1, frame2})
-                local _, file1, linenr1 = frame_unpack(frame1)
-                local _, file2, linenr2 = frame_unpack(frame2)
+            local _, file1, linenr1 = frame_unpack(frame1)
+            local _, file2, linenr2 = frame_unpack(frame2)
 
-                util.init(node_info[file1][linenr1].out_counts, file2, {})
-                util.init(node_info[file1][linenr1].out_counts[file2], linenr2, 0)
-                node_info[file1][linenr1].out_counts[file2][linenr2] =
-                    node_info[file1][linenr1].out_counts[file2][linenr2] + trace.count
+            util.init(node_info[file1][linenr1].out_counts, file2, {})
+            util.init(node_info[file1][linenr1].out_counts[file2], linenr2, 0)
+            node_info[file1][linenr1].out_counts[file2][linenr2] =
+                node_info[file1][linenr1].out_counts[file2][linenr2] + trace.count
 
-                util.init(node_info[file2][linenr2].in_counts, file1, {})
-                util.init(node_info[file2][linenr2].in_counts[file1], linenr1, 0)
-                node_info[file2][linenr2].in_counts[file1][linenr1] =
-                    node_info[file2][linenr2].in_counts[file1][linenr1] + trace.count
-            end
+            util.init(node_info[file2][linenr2].in_counts, file1, {})
+            util.init(node_info[file2][linenr2].in_counts[file1], linenr1, 0)
+            node_info[file2][linenr2].in_counts[file1][linenr1] =
+                node_info[file2][linenr2].in_counts[file1][linenr1] + trace.count
         end
     end
 
