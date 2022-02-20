@@ -141,7 +141,8 @@ local popts = {
         },
 
         ["n"] = {
-            -- TODO: set sensible defaults...
+            ["gu"] = pa_actions.hottest_callers,
+            ["gd"] = pa_actions.hottest_callees,
         }
     }
 }
