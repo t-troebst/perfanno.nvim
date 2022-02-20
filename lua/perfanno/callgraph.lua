@@ -4,6 +4,9 @@ local util = require("perfanno.util")
 
 local M = {}
 
+-- Memoize the canonical names of files so we don't have to keep asking the file system
+local real_names
+
 --- Separates frame into symbol, file, and line number.
 -- @param frame Either a string of the form "{symbol} {file}:{linenr}" where file is a full file
 --        path, or a table with entries for symbol, file, and linenr.
@@ -17,7 +20,11 @@ local function frame_unpack(frame)
             return nil, "symbol", frame.symbol
         end
 
-        frame.file = vim.loop.fs_realpath(frame.file) or frame.file
+        if not real_names[frame.file] then
+            real_names[frame.file] = vim.loop.fs_realpath(frame.file) or frame.file
+        end
+
+        frame.file = real_names[frame.file]
         return frame.symbol, frame.file, frame.linenr
     end
 
@@ -45,6 +52,8 @@ local function process_traces(traces)
     local total_count = 0
     local max_count = 0
     local symbols = {}
+
+    real_names = {}
 
     for _, trace in ipairs(traces) do
         local visited_lines = {}  -- needed to get sane results with recursion
@@ -109,6 +118,7 @@ local function process_traces(traces)
         end
     end
 
+    real_names = {}
     return node_info, symbols, total_count, max_count
 end
 
