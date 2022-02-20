@@ -117,6 +117,29 @@ configuration is given below.
             -- }
         }
     }
+
+    local telescope = require("telescope")
+    local actions = telescope.extensions.perfanno.actions
+    telescope.setup {
+        extensions = {
+            perfanno = {
+                -- Special mappings in the telescope finders
+                mappings = {
+                    ["i"] = {
+                        -- Find hottest callers of selected entry
+                        ["<C-h>"] = actions.hottest_callers,
+                        -- Find hottest callees of selected entry
+                        ["<C-l>"] = actions.hottest_callees,
+                    },
+
+                    ["n"] = {
+                        ["gu"] = actions.hottest_callers,
+                        ["gd"] = actions.hottest_callees,
+                    }
+                }
+            }
+        }
+    }
 <
 Note: using this configuration will not set any highlights nor will it set any
 keybindings. For a recommended example config see |perfanno-example-config|.

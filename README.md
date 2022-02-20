@@ -117,18 +117,22 @@ require("perfanno").setup {
 local telescope = require("telescope")
 local actions = telescope.extensions.perfanno.actions
 telescope.setup {
-    -- Special mappings in the telescope finders
-    mappings = {
-        ["i"] = {
-            -- Find hottest callers of selected entry
-            ["<C-h>"] = actions.hottest_callers,
-            -- Find hottest callees of selected entry
-            ["<C-l>"] = actions.hottest_callees,
-        },
+    extensions = {
+        perfanno = {
+            -- Special mappings in the telescope finders
+            mappings = {
+                ["i"] = {
+                    -- Find hottest callers of selected entry
+                    ["<C-h>"] = actions.hottest_callers,
+                    -- Find hottest callees of selected entry
+                    ["<C-l>"] = actions.hottest_callees,
+                },
 
-        ["n"] = {
-            ["gu"] = actions.hottest_callers,
-            ["gd"] = actions.hottest_callees,
+                ["n"] = {
+                    ["gu"] = actions.hottest_callers,
+                    ["gd"] = actions.hottest_callees,
+                }
+            }
         }
     }
 }
