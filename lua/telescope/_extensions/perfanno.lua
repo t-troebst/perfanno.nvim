@@ -44,6 +44,8 @@ local function finder_from_table(entries, total_count)
     return finders.new_table(opts)
 end
 
+local previewer_ns = vim.api.nvim_create_namespace("perfanno.telescope_previewer")
+
 --- Provides a telescope previeer that calls "annotate_fn" on each buffer to annotate it.
 -- @param annotate_fn Function that takes a buffer number and a file, gets called whenever a new
 --        file is loaded into that buffer.
@@ -55,6 +57,16 @@ local function annotated_previewer(annotate_fn)
                 return
             end
 
+            local update_cursor = function(bufnr)
+                vim.api.nvim_buf_clear_namespace(bufnr, previewer_ns, 0, -1)
+                vim.api.nvim_buf_add_highlight(bufnr, previewer_ns, "TelescopePreviewLine",
+                                               entry.lnum - 1, 0, -1)
+                vim.api.nvim_win_set_cursor(self.state.winid, {entry.lnum, 0})
+                vim.api.nvim_buf_call(bufnr, function()
+                    vim.cmd("norm! zz")
+                end)
+            end
+
             -- This is the recommended caching mechanism for telescope. This way we don't need to
             -- reannotate the same buffer while we are switching between lines.
             if self.state.bufname ~= entry.path then
@@ -64,13 +76,13 @@ local function annotated_previewer(annotate_fn)
                             annotate_fn(bufnr, entry.path)
                         end
 
-                        vim.api.nvim_win_set_cursor(self.state.winid, {entry.lnum, 0})
+                        pcall(update_cursor, bufnr)
                     end
                 }
 
                 tconf.buffer_previewer_maker(entry.path, self.state.bufnr, opts)
             else
-                vim.api.nvim_win_set_cursor(self.state.winid, {entry.lnum, 0})
+                pcall(update_cursor, self.state.bufnr)
             end
         end,
 
