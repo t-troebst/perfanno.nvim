@@ -28,7 +28,8 @@ INTRODUCTION                                             *perfanno-introduction*
 PerfAnno is a simple lua plugin for NeoVim which stores call graph information
 obtained from a profiler like Perf or anything that can output folded stack
 traces in the flamegraph format and allows you to explore it in an intuitive
-and interactive way.
+and interactive way. It also allows you to easily profile Lua code running
+NeoVim.
 
 As a basic functionality it annotates your code, displaying what percentage of
 time (or other events) is spent in individual lines of code. See
@@ -183,7 +184,7 @@ a list of folded stacktraces. See |:PerfLoadFlameGraph| for more details.
 ==============================================================================
 COMMANDS                                                     *perfanno-commands*
 
-Loading Profiling Data~
+Loading External Profiling Data~
 
 `:PerfLoadFlat`                                                    *:PerfLoadFlat*
     Tries to load `perf.data` in the current working directory in flat mode,
@@ -214,6 +215,16 @@ Loading Profiling Data~
         `/full/file path/to/source.cpp:35`
     instead of
         `/full/file\ path//to/../to/source.cpp:35`
+
+Lua Profiling~
+
+`:PerfLuaProfileStart`                                      *:PerfLuaProfileStart*
+    Starts profiling all Lua code currently running in NeoVim. This uses the
+    native LuaJIT profiler.
+
+`:PerfLuaProfileStop`                                        *:PerfLuaProfileStop*
+    Stops the LuaJIT profiler and loads the generated stack traces into the
+    call graph.
 
 Controlling Annotations~
 

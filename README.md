@@ -1,13 +1,10 @@
 # PerfAnno: Profiling Annotations and Call Graph Exploration in NeoVim!
 
-PerfAnno is a simple lua plugin for NeoVim that allows you to annotate your code with output from perf or other profilers that can generate stack traces in the [flamegraph](https://github.com/brendangregg/FlameGraph) format.
-It supports two different modes:
-
-* **call graph:** Each line is annotated with the samples that occurred in that line *including* nested function calls. This requires that the perf.data file has been recorded with call graph information.
-* **flat:** Each line is annotated with the samples that occurred in that line *without* nested function calls. This information is easier to get but obviously disables some useful features of this plugin.
-
-If the perf.data file has multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
-In addition, PerfAnno provides a Telescope (or `vim.ui.select`) finder that allows you to immediately jump to the hottest lines in your code base or the hottest callers of a specific region of code (typically a function).
+PerfAnno is a simple lua plugin for NeoVim that allows you to annotate your code with output from perf or other call graph profilers that can generate stack traces in the [flamegraph](https://github.com/brendangregg/FlameGraph) format.
+The plugin itself is language agnostic and has been tested with C, C++, Lua, and Python.
+Each line is annotated with the samples that occurred in that line *including* nested function calls. This requires that the perf.data file has been recorded with call graph information.
+If the profiler provides multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
+In addition, PerfAnno provides a Telescope (or `vim.ui.select`) finder that allows you to immediately jump to the hottest lines / functions in your code base or the hottest callers of a specific region of code (typically a function).
 
 https://user-images.githubusercontent.com/15610942/153775719-ed236a8d-d012-448d-b3b1-8b38f57d1fbf.mp4
 
@@ -117,6 +114,24 @@ require("perfanno").setup {
     }
 }
 
+local telescope = require("telescope")
+local actions = telescope.extensions.perfanno.actions
+telescope.setup {
+    -- Special mappings in the telescope finders
+    mappings = {
+        ["i"] = {
+            -- Find hottest callers of selected entry
+            ["<C-h>"] = actions.hottest_callers,
+            -- Find hottest callees of selected entry
+            ["<C-l>"] = actions.hottest_callees,
+        },
+
+        ["n"] = {
+            ["gu"] = actions.hottest_callers,
+            ["gd"] = actions.hottest_callees,
+        }
+    }
+}
 ```
 
 These are the default settings, so this is equivalent to `require("perfanno").setup()`.
@@ -156,6 +171,15 @@ For example:
 * `:PerfLoadFlameGraph` loads data from a `perf.log` file in flamegraph format.
 
 If there is no `perf.data` or `perf.log` file respectively in your working directory, you will be asked to locate one. If `annotate_after_load` is set this will immediately annotate all buffers.
+
+### Lua Profiling
+
+PerfAnno can be used to easily profile NeoVim via the native LuaJIT profiler.
+Simply use the following commands in order:
+
+* `:PerfLuaProfileStart` starts profiling.
+* `:PerfLuaProfileStop` stops the current profiling run and loads the stack traces into the call
+  graph. Automatically annotates all buffers if `annotate_after_load` is set.
 
 ### Control how annotations are displayed
 
@@ -226,11 +250,11 @@ You may also specify a frame directly in the format:
 ```
 
 Note: The file paths in the traces should be full, unescaped paths in the canonical format, i.e. `/full/file path/to/source.cpp:35` instead of `/full/file\ path//to/../to/source.cpp:35`.
+We try to get canonical representations of the paths but this is generally most reliable.
 
 ## Future Goals
 
 * Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder).
-* Add some kind of tree-based call graph exploration.
 * Add support for `:FindHottestCallers` with increased depth.
 * Add `:FindHottestCallees` which is essentially `:FindHottestLines` but relative to stack traces that go through a certain selection.
 * Perf can take quite a while to generate reports from large files, maybe add some kind of caching?
