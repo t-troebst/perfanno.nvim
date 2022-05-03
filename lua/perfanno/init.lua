@@ -7,6 +7,7 @@ local M = {}
 --- Sets up the plugin with the provided options.
 -- @param opt Options for the plugin. See :help perfanno-configuration.
 function M.setup(opts)
+    opts = opts or {}
     config.load(opts)
 
     -- Commands for loading call graph information via perf / flamegraph.
