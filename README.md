@@ -153,7 +153,7 @@ If the `dwarf` option creates files that are too large or take too long to proce
 
 `perf record --call-graph fp {program}`
 
-However, this requires that your program and all libraries have been compiled with `--fno-omit-frame-pointer` and you may find that the line numbers are slightly off.
+However, this requires that your program and all libraries have been compiled with `-fno-omit-frame-pointer` and you may find that the line numbers are slightly off.
 For more information, see the documentation of perf.
 
 If you are using another profiler, you will need to generate a `perf.log` file that stores data in the flamegraph format, i.e. as a list of `;`-separated stack traces with a count at the end in each line.
