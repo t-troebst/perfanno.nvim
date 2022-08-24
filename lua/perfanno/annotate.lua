@@ -141,7 +141,9 @@ function M.annotate(event)
     toggled = true
 
     for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
-        M.annotate_buffer(bnr, event)
+        if vim.api.nvim_buf_is_loaded(bnr) then
+            M.annotate_buffer(bnr, event)
+        end
     end
 end
 
@@ -150,7 +152,9 @@ function M.clear()
     toggled = false
 
     for _, bnr in ipairs(vim.api.nvim_list_bufs()) do
-        M.clear_buffer(bnr)
+        if vim.api.nvim_buf_is_loaded(bnr) then
+            M.clear_buffer(bnr)
+        end
     end
 end
 
