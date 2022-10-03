@@ -10,30 +10,32 @@ function M.setup(opts)
     opts = opts or {}
     config.load(opts)
 
+    local cmd = vim.api.nvim_create_user_command
+
     -- Commands for loading call graph information via perf / flamegraph.
-    vim.cmd[[command! PerfLoadFlat :lua require("perfanno").load_perf_flat()]]
-    vim.cmd[[command! PerfLoadCallGraph :lua require("perfanno").load_perf_callgraph()]]
-    vim.cmd[[command! PerfLoadFlameGraph :lua require("perfanno").load_flamegraph()]]
+    cmd('PerfLoadFlat', M.load_perf_flat, {})
+    cmd('PerfLoadCallGraph', M.load_perf_callgraph, {})
+    cmd('PerfLoadFlameGraph', M.load_flamegraph, {})
 
     -- Lua profiling via the internal LuaJit profiler
-    vim.cmd[[command! PerfLuaProfileStart :lua require("perfanno").lua_profile_start()]]
-    vim.cmd[[command! PerfLuaProfileStop :lua require("perfanno").lua_profile_stop()]]
+    cmd('PerfLuaProfileStart', M.lua_profile_start, {})
+    cmd('PerfLuaProfileStop', M.lua_profile_stop, {})
 
     -- Commands that control what and how to annotate.
-    vim.cmd[[command! PerfPickEvent :lua require("perfanno").pick_event()]]
-    vim.cmd[[command! PerfCycleFormat :lua require("perfanno").cycle_format()]]
+    cmd('PerfPickEvent', M.pick_event, {})
+    cmd('PerfCycleFormat', M.cycle_format, {})
 
     -- Commands that perform annotations.
-    vim.cmd[[command! PerfAnnotate :lua require("perfanno").annotate()]]
-    vim.cmd[[command! PerfToggleAnnotations :lua require("perfanno").toggle_annotations()]]
-    vim.cmd[[command! PerfAnnotateFunction :lua require("perfanno").annotate_function()]]
-    vim.cmd[[command! -range PerfAnnotateSelection :lua require("perfanno").annotate_selection()]]
+    cmd('PerfAnnotate', M.annotate, {})
+    cmd('PerfToggleAnnotations', M.toggle_annotations, {})
+    cmd('PerfAnnotateFunction', M.annotate_function, {})
+    cmd('PerfAnnotateSelection', M.annotate_selection, { range = true })
 
     -- Commands that find hot code lines.
-    vim.cmd[[command! PerfHottestSymbols :lua require("perfanno").find_hottest_symbols()]]
-    vim.cmd[[command! PerfHottestLines :lua require("perfanno").find_hottest_lines()]]
-    vim.cmd[[command! PerfHottestCallersFunction :lua require("perfanno").find_hottest_callers_function()]]
-    vim.cmd[[command! -range PerfHottestCallersSelection :lua require("perfanno").find_hottest_callers_selection()]]
+    cmd('PerfHottestSymbols', M.find_hottest_symbols, {})
+    cmd('PerfHottestLines', M.find_hottest_lines, {})
+    cmd('PerfHottestCallersFunction', M.find_hottest_callers_function, {})
+    cmd('PerfHottestCallersSelection', M.find_hottest_callers_selection, { range = true })
 
     -- Setup automatic annotation of new buffers.
     local augroup = vim.api.nvim_create_augroup("PerfAnno", { clear = true })
