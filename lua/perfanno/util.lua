@@ -96,14 +96,14 @@ local num_highlights = 0
 
 function M.make_fg_highlight(color)
     num_highlights = num_highlights + 1
-    vim.highlight.create("PerfAnno" .. num_highlights, {guifg = color})
+    vim.api.nvim_set_hl(0, "PerfAnno" .. num_highlights, {fg = color})
 
     return "PerfAnno" .. num_highlights
 end
 
 function M.make_bg_highlight(color)
     num_highlights = num_highlights + 1
-    vim.highlight.create("PerfAnno" .. num_highlights, {guibg = color})
+    vim.api.nvim_set_hl(0, "PerfAnno" .. num_highlights, {bg = color})
 
     return "PerfAnno" .. num_highlights
 end
