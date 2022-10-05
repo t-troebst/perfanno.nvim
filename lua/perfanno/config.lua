@@ -52,7 +52,7 @@ M.selected_event = nil
 --- Loads given options by extending defaults.
 -- @param opts Config options to load.
 function M.load(opts)
-    M.values = vim.tbl_deep_extend("force", M.values, opts)
+    M.values = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts)
 end
 
 --- Checks whether an event count meets mininum to be displayed given total events.
