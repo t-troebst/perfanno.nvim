@@ -76,4 +76,36 @@ function M.profile(expr, sampling_interval)
     M.stop()
 end
 
+local function sync_read_file(fname)
+    local fd = assert(vim.loop.fs_open(fname, "r", 438))
+    local stat = assert(vim.loop.fs_fstat(fd))
+    local data = assert(vim.loop.fs_read(fd, stat.size, 0))
+    assert(vim.loop.fs_close(fd))
+    return data
+end
+
+local function sync_write_file(fname, data)
+    local fd = assert(vim.loop.fs_open(fname, "w", 438))
+    assert(vim.loop.fs_write(fd, data, 0))
+    assert(vim.loop.fs_close(fd))
+    return data
+end
+
+--- Dump traces to a JSON file for reload later
+---@param fname string Output file path
+function M.dump(fname)
+    if not traces then
+        vim.notify("No traces collected - run profiling first!")
+        return
+    end
+    sync_write_file(fname, vim.json.encode(traces))
+end
+
+--- Load traces from JSON file created with dump()
+---@param fname string Path to input file
+function M.load(fname)
+    traces = vim.json.decode(sync_read_file(fname))
+    callgraph.load_traces{time = traces}
+end
+
 return M

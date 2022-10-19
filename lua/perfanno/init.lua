@@ -20,6 +20,8 @@ function M.setup(opts)
     -- Lua profiling via the internal LuaJit profiler
     cmd('PerfLuaProfileStart', M.lua_profile_start, {})
     cmd('PerfLuaProfileStop', M.lua_profile_stop, {})
+    cmd('PerfLuaProfileDump', M.lua_profile_dump, { nargs = 1 })
+    cmd('PerfLuaProfileLoad', M.lua_profile_load, { nargs = 1 })
 
     -- Commands that control what and how to annotate.
     cmd('PerfPickEvent', M.pick_event, {})
@@ -141,6 +143,20 @@ function M.lua_profile_stop()
     require("perfanno.lua_profile").stop()
     local callgraph = require("perfanno.callgraph")
 
+    if callgraph.is_loaded() and config.values.annotate_after_load then
+        M.annotate()
+    end
+end
+
+--- Dumps current LuaJIT profiling results to a file
+function M.lua_profile_dump(opts)
+    require("perfanno.lua_profile").dump(opts.args[1])
+end
+
+--- Loads LuaJIT profiling results from a file
+function M.lua_profile_load(opts)
+    require("perfanno.lua_profile").load(opts.args[1])
+    local callgraph = require("perfanno.callgraph")
     if callgraph.is_loaded() and config.values.annotate_after_load then
         M.annotate()
     end
