@@ -185,6 +185,11 @@ Simply use the following commands in order:
 * `:PerfLuaProfileStop` stops the current profiling run and loads the stack traces into the call
   graph. Automatically annotates all buffers if `annotate_after_load` is set.
 
+Results can be saved on disk and loaded later using:
+
+* `:PerfLuaProfileDump <filename>` stores current LuaJIT profiling results to a JSON file
+* `:PerfLuaProfileLoad <filename>` loads LuaJIT profiling results from a JSON file
+
 ### Control how annotations are displayed
 
 * `:PerfPickEvent` chooses a different event from the perf data to display. For example, you could use this to switch between cpu cycles, branch mispredictions, and cache misses.
