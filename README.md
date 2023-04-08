@@ -89,7 +89,7 @@ require("perfanno").setup {
 
     -- Automatically annotate files after :PerfLoadFlat and :PerfLoadCallGraph
     annotate_after_load = true,
-    -- Automatically annoate newly opened buffers if information is available
+    -- Automatically annotate newly opened buffers if information is available
     annotate_on_open = true,
 
     -- Options for telescope-based hottest line finders

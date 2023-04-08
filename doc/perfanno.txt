@@ -93,7 +93,7 @@ configuration is given below.
 
         -- Automatically annotate files after loading perf data
         annotate_after_load = true,
-        -- Automatically annoate newly opened buffers (if possible)
+        -- Automatically annotate newly opened buffers (if possible)
         annotate_on_open = true,
 
         -- Options for telescope-based hottest line finders
