@@ -209,12 +209,12 @@ COMMANDS                                                     *perfanno-commands*
 
 Loading External Profiling Data~
 
-`:PerfLoadFlat`                                                    *:PerfLoadFlat*
+:PerfLoadFlat                                                    *:PerfLoadFlat*
     Tries to load `perf.data` in the current working directory in flat mode,
     i.e. without any call graph information. If this fails, you will be asked
     to provide an alternative `perf.data` file.
 
-`:PerfLoadCallGraph`                                          *:PerfLoadCallGraph*
+:PerfLoadCallGraph                                          *:PerfLoadCallGraph*
     Tries to load `perf.data` in the current working directory in with call
     graph information. If this fails, you will be asked to provide an
     alternative `perf.data` file.
@@ -223,7 +223,7 @@ Loading External Profiling Data~
     may not be available in older versions. It may also require a decent
     amount of time to read in the data.
 
-`:PerfLoadFlameGraph`                                        *:PerfLoadFlameGraph*
+:PerfLoadFlameGraph                                        *:PerfLoadFlameGraph*
     Loads a `perf.log` data that is in the same format that the popular
     `flamegraph.pl` script uses. Each line should consist of `;`-separated
     source lines with a final trace count at the end. For example:
@@ -241,63 +241,75 @@ Loading External Profiling Data~
 
 Lua Profiling~
 
-`:PerfLuaProfileStart`                                      *:PerfLuaProfileStart*
+:PerfLuaProfileStart                                      *:PerfLuaProfileStart*
     Starts profiling all Lua code currently running in NeoVim. This uses the
     native LuaJIT profiler.
 
-`:PerfLuaProfileStop`                                        *:PerfLuaProfileStop*
+:PerfLuaProfileStop                                        *:PerfLuaProfileStop*
     Stops the LuaJIT profiler and loads the generated stack traces into the
     call graph.
 
 Controlling Annotations~
 
-`:PerfPickEvent`                                                  *:PerfPickEvent*
+:PerfPickEvent                                                  *:PerfPickEvent*
     Chooses an event from the loaded call graph data to display. This is
     convenient if you want to switch between say displaying cpu cycles and
     cache misses.
 
-`:PerfCycleFormat`                                              *:PerfCycleFormat*
+:PerfCycleFormat                                              *:PerfCycleFormat*
     Toggles between different stored annotation formats. By default this can
     be used to switch between absolute and relative event counts.
 
 Annotating~
 
-`:PerfAnnotate`                                                    *:PerfAnnotate*
+:PerfAnnotate                                                    *:PerfAnnotate*
     Annotates all currently opened buffers with the stored call graph
     information. If no event has been selected yet, it will call
     |:PerfPickEvent| first.
 
-`:PerfToggleAnnotations`                                  *:PerfToggleAnnotations*
+:PerfToggleAnnotations                                  *:PerfToggleAnnotations*
     Toggles |:PerfAnnotate| in all currently opened buffers.
 
-`:PerfAnnotateSelection`                                  *:PerfAnnotateSelection*
+:PerfAnnotateSelection                                  *:PerfAnnotateSelection*
     Annotates code only in a given visual selection. Line highlights are shown
     relative to the total event count in that selection and if the current
     format is in percent, then the displayed percentages are also relative.
 
-`:PerfAnnotateFunction`                                    *:PerfAnnotateFunction*
+:PerfAnnotateFunction                                    *:PerfAnnotateFunction*
     Works just like |:PerfAnnotateSelection| but automatically selects the
     current function via treesitter.
 
 Finding Hot Lines~
 
-`:PerfHottestLines`                                            *:PerfHottestLines*
+:PerfHottestLines                                            *:PerfHottestLines*
     Opens a selection window (by default via telescope) that shows the hottest
     lines of code in the code base according to the currently selected event.
 
-`:PerfHottestSymbols`                                        *:PerfHottestSymbols*
+:PerfHottestSymbols                                        *:PerfHottestSymbols*
     Opens a selection window (by default via telescope) that shows the hottest
     symbols (i.e. functions, usually) in the code base.
 
-`:PerfHottestLinesSelection`                          *:PerfHottestLinesSelection*
+:PerfHottestLinesSelection                          *:PerfHottestLinesSelection*
     Opens a selection window (by default via telescope) that shows the hottest
     lines of code that call into the visually selected region.
 
     Note: Currently this only shows direct callers.
 
-`:PerfHottestLinesFunction`                            *:PerfHottestLinesFunction*
+:PerfHottestLinesFunction                            *:PerfHottestLinesFunction*
     Works just like |:PerfHottestLinesFunction| but automatically selects the
     current function via treesitter.
+
+Caching (experimental)~
+
+:PerfCacheSave {name}                                           *:PerfCacheSave*
+    Saves the currently loaded callgraph in the cache under {name}.
+
+:PerfCacheLoad {name}                                           *:PerfCacheLoad*
+    Loads the callgraph {name} from the cache. {name} can be empty in which
+    case the most recently cached callgraph will be loaded.
+
+:PerfCacheDelete {name}                                       *:PerfCacheDelete*
+    Deletes the callgraph {name} from the cache.
 
 ==============================================================================
 EXTENSIONS                                                 *perfanno-extensions*

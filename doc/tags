@@ -1,6 +1,9 @@
 :PerfAnnotate	perfanno.txt	/*:PerfAnnotate*
 :PerfAnnotateFunction	perfanno.txt	/*:PerfAnnotateFunction*
 :PerfAnnotateSelection	perfanno.txt	/*:PerfAnnotateSelection*
+:PerfCacheDelete	perfanno.txt	/*:PerfCacheDelete*
+:PerfCacheLoad	perfanno.txt	/*:PerfCacheLoad*
+:PerfCacheSave	perfanno.txt	/*:PerfCacheSave*
 :PerfCycleFormat	perfanno.txt	/*:PerfCycleFormat*
 :PerfHottestLines	perfanno.txt	/*:PerfHottestLines*
 :PerfHottestLinesFunction	perfanno.txt	/*:PerfHottestLinesFunction*

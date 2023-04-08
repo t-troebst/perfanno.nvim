@@ -206,6 +206,19 @@ If there is more than one event that was loaded, then you will be asked to pick 
 * `:PerfHottestCallersSelection` opens a telescope finder with the hottest lines that lead directly to the currently selected lines.
 * `:PerfHottestCallersFunction` works just like `:PerfHottestCallersSelection` but selects the function that contains the cursor via treesitter.
 
+### Caching (experimental)
+
+Depending on how the callgraph is loaded, it may take a substantial amount of time to generate
+(e.g. with perf on a long run) or it may not even be possible to generate it again (e.g. with the
+Lua profiler). For these reasons, PerfAnno supports the ability to save/restore callgraphs to a
+cache via the following commands:
+
+* `:PerfCacheSave <name> ` saves the currently loaded callgraph in the cache under the given name.
+* `:PerfCacheLoad <name>` loads the callgraph in the cache of the given name. Automatically
+  annotates all buffers if `annotate_after_load` is set. If an empty name is supplied, the most
+  recently cached callgraph is loaded.
+* `:PerfCacheDelete <name>` deletes the callgraph in the cache of the given name.
+
 ## Extensions
 
 If you wish to use this plugin with a profiler that is not perf, you can simply call `require("perfanno").load_traces` to set up the callgraph information with a list of stack traces for each possible event.
