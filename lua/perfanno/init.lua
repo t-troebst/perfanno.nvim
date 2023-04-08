@@ -22,9 +22,9 @@ function M.setup(opts)
     cmd('PerfLuaProfileStop', M.lua_profile_stop, {})
 
     -- Commands for interacting with the callgraph cache
-    cmd('PerfCallgraphSave', M.save_callgraph, {nargs = 1, complete = M.list_callgraphs})
-    cmd('PerfCallgraphLoad', M.load_callgraph, {nargs = '?', complete = M.list_callgraphs})
-    cmd('PerfCallgraphDelete', M.delete_callgraph, {nargs = 1, complete = M.list_callgraphs})
+    cmd('PerfCacheSave', M.save_callgraph, {nargs = 1, complete = M.list_callgraphs})
+    cmd('PerfCacheLoad', M.load_callgraph, {nargs = '?', complete = M.list_callgraphs})
+    cmd('PerfCacheDelete', M.delete_callgraph, {nargs = 1, complete = M.list_callgraphs})
 
     -- Commands that control what and how to annotate.
     cmd('PerfPickEvent', function() M.pick_event() end, {})
