@@ -49,31 +49,39 @@ function M.setup(opts)
     end
 end
 
---- Checks if a file exists, if not asks the user, finally gives result to continuation.
+--- Checks if a file exists, if not asks the user, finally returns result
 -- @param default Default file such as "perf.data" to look for.
--- @param cont Continuation that will be called if the user selects a file.
-local function get_data_file(default, cont)
+-- @return Data file
+local function get_data_file(default)
     if vim.fn.filereadable(default) == 1 then
-        cont(default)
+        return default
     else
+        local co = coroutine.running()
+
         local input_opts = {
             prompt = "Input path to " .. default .. ": ",
             default = vim.fn.getcwd() .. "/",
             completion = "file"
         }
 
-        vim.ui.input(input_opts, function(file)
-            if not file then
-                return
-            end
+        vim.schedule(function()
+            vim.ui.input(input_opts, function(file)
+                if not file then
+                    coroutine.resume(co)
+                    return
+                end
 
-            if vim.fn.filereadable(file) == 0 then
-                vim.notify("Could not read file!")
-                return
-            end
+                if vim.fn.filereadable(file) == 0 then
+                    vim.notify("Could not read file!")
+                    coroutine.resume(co)
+                    return
+                end
 
-            cont(file)
+                coroutine.resume(co, file)
+            end)
         end)
+
+        return coroutine.yield()
     end
 end
 
@@ -84,24 +92,34 @@ function M.load_traces(traces)
     local callgraph = require("perfanno.callgraph")
     callgraph.load_traces(traces)
 
-    if callgraph.is_loaded() and config.values.annotate_after_load then
-        M.annotate()
+    if callgraph.is_loaded() then
+        vim.notify("Callgraph has been loaded!")
+
+        if config.values.annotate_after_load then
+            M.annotate()
+        end
     end
 end
 
 --- Loads perf data into the call graph *without* call graph information (flat).
-function M.load_perf_flat()
-    get_data_file("perf.data", function(perf_data)
-        M.load_traces(require("perfanno.parse_perf").perf_flat(perf_data))
-    end)
-end
+M.load_perf_flat = coroutine.wrap(function()
+    local data_file = get_data_file("perf.data")
+
+    if data_file then
+        vim.notify("Running perf...")
+        M.load_traces(require("perfanno.parse_perf").perf_flat(data_file))
+    end
+end)
 
 --- Loads perf data into the call graph *with* call graph information.
-function M.load_perf_callgraph()
-    get_data_file("perf.data", function(perf_data)
-        M.load_traces(require("perfanno.parse_perf").perf_callgraph(perf_data))
-    end)
-end
+M.load_perf_callgraph = coroutine.wrap(function()
+    local data_file = get_data_file("perf.data")
+
+    if data_file then
+        vim.notify("Running perf...")
+        M.load_traces(require("perfanno.parse_perf").perf_callgraph(data_file))
+    end
+end)
 
 --- Parses a file containing stack traces in the flamegraph.pl format.
 -- @param perf_log File to parse.
@@ -125,11 +143,13 @@ local function parse_flamegraph(perf_log)
 end
 
 --- Loads flamegraph file into the call graph.
-function M.load_flamegraph()
-    get_data_file("perf.log", function(perf_log)
-        M.load_traces(parse_flamegraph(perf_log))
-    end)
-end
+M.load_flamegraph = coroutine.wrap(function()
+    local data_file = get_data_file("perf.log")
+
+    if data_file then
+        M.load_traces(parse_flamegraph(data_file))
+    end
+end)
 
 --- Starts a LuaJIT profiling run (just a wrapper for consistency).
 function M.lua_profile_start()
@@ -141,8 +161,12 @@ function M.lua_profile_stop()
     require("perfanno.lua_profile").stop()
     local callgraph = require("perfanno.callgraph")
 
-    if callgraph.is_loaded() and config.values.annotate_after_load then
-        M.annotate()
+    if callgraph.is_loaded() then
+        vim.notify("Callgraph has been loaded!")
+
+        if config.values.annotate_after_load then
+            M.annotate()
+        end
     end
 end
 

@@ -35,18 +35,24 @@ local M = {}
 --- Execute cmd and return the stdout result.
 -- @param cmd Command to execute.
 -- @param silent Prevent stderr output if true.
--- @return Output of the command as a string.
-local function get_command_output(cmd, silent)
-    if silent then
-        cmd = cmd .. " 2>/dev/null"
-    end
+-- @return Pair of exit code and stdout as a list of lines
+local function get_command_output(cmd)
+    local co = coroutine.running()
+    local exit_code, stdout
 
-    local data_file = assert(io.popen(cmd, "r"))
-    data_file:flush()
-    local output = data_file:read("*all")
-    data_file:close()  -- TODO: can we get the return code and use it?
+    vim.fn.jobstart(cmd, {
+        stdout_buffered = true,
+        on_stdout = function(_, data)
+            stdout = data
+        end,
+        on_exit = function(_, code)
+            exit_code = code
+            coroutine.resume(co)
+        end
+    })
 
-    return output
+    coroutine.yield()
+    return exit_code, stdout
 end
 
 --- Obtains simple flat profile from perf (no callgraph).
@@ -57,12 +63,18 @@ function M.perf_flat(perf_data)
     -- TODO: could this break if the user has a perf config?
     -- TODO: what versions of perf does this work for?
     local cmd = "perf report -g none -F sample,srcline,symbol --stdio --full-source-path -i " .. esc
-    local raw_data = get_command_output(cmd, true)
+    local exit_code, lines = get_command_output(cmd)
+
+    if exit_code ~= 0 then
+        vim.notify("Perf returned non-zero exit code (" .. tostring(exit_code)
+            .. ") for command: " .. cmd)
+        return {}
+    end
 
     local result = {}
     local current_event
 
-    for line in raw_data:gmatch("[^\r\n]+") do
+    for _, line in ipairs(lines) do
         local num, event = line:match("# Samples: (%d+%u?)%s+of event '(.*)'")
 
         if num and event then
@@ -99,12 +111,18 @@ function M.perf_callgraph(perf_data)
     -- TODO: what versions of perf does this work for?
     local cmd = "perf report -g folded,0,caller,srcline,branch,count"
                 .. " --no-children --full-source-path --stdio -i " .. esc
-    local raw_data = get_command_output(cmd, true)
+    local exit_code, lines = get_command_output(cmd)
+
+    if exit_code ~= 0 then
+        vim.notify("Perf returned non-zero exit code (" .. tostring(exit_code)
+            .. ") for command: " .. cmd)
+        return {}
+    end
 
     local result = {}
     local current_event
 
-    for line in raw_data:gmatch("[^\r\n]+") do
+    for _, line in ipairs(lines) do
         local num, event = line:match("# Samples: (%d+[KMB]?)%s+of event '(.*)'")
 
         if num and event then
