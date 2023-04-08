@@ -188,7 +188,7 @@ function M.hottest_callers_function_table(event)
     local file = current_canonical_file()
 
     if not file then
-        vim.notify("Could not find current file!")
+        vim.notify("Could not find current file!", vim.log.levels.ERROR)
         return nil
     end
 
@@ -197,7 +197,7 @@ function M.hottest_callers_function_table(event)
     if line_begin and line_end then
         return M.hottest_callers_table(event, file, line_begin, line_end)
     else
-        vim.notify("Could not find surrounding function!")
+        vim.notify("Could not find surrounding function!", vim.log.levels.ERROR)
     end
 end
 
@@ -208,7 +208,7 @@ function M.hottest_callers_selection_table(event)
     local file = current_canonical_file()
 
     if not file then
-        vim.notify("Could not find current file!")
+        vim.notify("Could not find current file!", vim.log.levels.ERROR)
         return nil
     end
 
@@ -217,7 +217,7 @@ function M.hottest_callers_selection_table(event)
     if line_begin and line_end then
         return M.hottest_callers_table(event, file, line_begin, line_end)
     else
-        vim.notify("Could not get visual selection!")
+        vim.notify("Could not get visual selection!", vim.log.levels.ERROR)
     end
 end
 

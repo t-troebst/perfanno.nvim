@@ -101,7 +101,7 @@ function pa_actions.hottest_callers(bufnr)
     local selection = state.get_selected_entry()
 
     if selection.path == "" then
-        vim.notify("No path associated to this entry!")
+        vim.notify("No path associated to this entry!", vim.log.levels.ERROR)
         return
     end
 
@@ -120,7 +120,7 @@ function pa_actions.hottest_callees(bufnr)
     local selection = state.get_selected_entry()
 
     if selection.path == "" then
-        vim.notify("No path associated to this entry!")
+        vim.notify("No path associated to this entry!", vim.log.levels.ERROR)
         return
     end
 

@@ -72,7 +72,7 @@ local function get_data_file(default)
                 end
 
                 if vim.fn.filereadable(file) == 0 then
-                    vim.notify("Could not read file!")
+                    vim.notify("Could not read file!", vim.log.levels.ERROR)
                     coroutine.resume(co)
                     return
                 end
@@ -176,7 +176,7 @@ function M.pick_event(cont)
     local callgraph = require("perfanno.callgraph")
 
     if not callgraph.is_loaded() then
-        vim.notify("No callgraph has been loaded!")
+        vim.notify("No callgraph has been loaded!", vim.log.levels.ERROR)
         return
     end
 
@@ -202,7 +202,7 @@ function M.pick_event(cont)
             if config.selected_event then
                 new_cont()
             else
-                vim.notify("No event was selected!")
+                vim.notify("No event was selected!", vim.log.levels.ERROR)
             end
         end)
     end
@@ -214,7 +214,7 @@ function M.with_event(cont)
     local callgraph = require("perfanno.callgraph")
 
     if not callgraph.is_loaded() then
-        vim.notify("No callgraph has been loaded!")
+        vim.notify("No callgraph has been loaded!", vim.log.levels.ERROR)
         return
     end
 

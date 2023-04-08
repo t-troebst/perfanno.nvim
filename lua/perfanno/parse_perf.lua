@@ -67,7 +67,7 @@ function M.perf_flat(perf_data)
 
     if exit_code ~= 0 then
         vim.notify("Perf returned non-zero exit code (" .. tostring(exit_code)
-            .. ") for command: " .. cmd)
+            .. ") for command: " .. cmd, vim.log.levels.ERROR)
         return {}
     end
 
@@ -115,7 +115,7 @@ function M.perf_callgraph(perf_data)
 
     if exit_code ~= 0 then
         vim.notify("Perf returned non-zero exit code (" .. tostring(exit_code)
-            .. ") for command: " .. cmd)
+            .. ") for command: " .. cmd, vim.log.levels.ERROR)
         return {}
     end
 

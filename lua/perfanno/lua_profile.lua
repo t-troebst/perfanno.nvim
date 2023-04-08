@@ -39,7 +39,7 @@ end
 -- @param sampling_interval Sampling interval in milliseconds.
 function M.start(sampling_interval)
     if running then
-        vim.notify("The profiler is already running - stop it first!")
+        vim.notify("The profiler is already running - stop it first!", vim.log.levels.ERROR)
         return
     end
 
@@ -54,7 +54,7 @@ end
 --- Stops profiling and loads the current traces into the call graph.
 function M.stop()
     if not running then
-        vim.notify("The profiler is not running - start it first!")
+        vim.notify("The profiler is not running - start it first!", vim.log.levels.ERROR)
         return
     end
 
