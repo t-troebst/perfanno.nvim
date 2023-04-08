@@ -22,9 +22,9 @@ function M.setup(opts)
     cmd('PerfLuaProfileStop', M.lua_profile_stop, {})
 
     -- Commands for interacting with the callgraph cache
-    cmd('PerfCallgraphSave', M.save_callgraph, {nargs = 1})
-    cmd('PerfCallgraphLoad', M.load_callgraph, {nargs = '?'})
-    cmd('PerfCallgraphDelete', M.delete_callgraph, {nargs = 1})
+    cmd('PerfCallgraphSave', M.save_callgraph, {nargs = 1, complete = M.list_callgraphs})
+    cmd('PerfCallgraphLoad', M.load_callgraph, {nargs = '?', complete = M.list_callgraphs})
+    cmd('PerfCallgraphDelete', M.delete_callgraph, {nargs = 1, complete = M.list_callgraphs})
 
     -- Commands that control what and how to annotate.
     cmd('PerfPickEvent', function() M.pick_event() end, {})
@@ -104,6 +104,19 @@ function M.load_traces(traces)
             M.annotate()
         end
     end
+end
+
+--- List all callgraphs in the cache.
+-- @return List of callgraphs.
+function M.list_callgraphs()
+    local result = {}
+    local index = require("perfanno.cache").load_index()
+
+    for name, _ in pairs(index) do
+        table.insert(result, name)
+    end
+
+    return result
 end
 
 --- Saves currently loaded callgraph into the cache (experimental).
