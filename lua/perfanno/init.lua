@@ -136,21 +136,32 @@ function M.save_callgraph(args)
 end
 
 --- Loads callgraph from the cache (experimental).
--- @param args Command args, we expect a name "args.args" for the cache.
+-- @param args Command args, if there is no name "args.args" for the cache, we load the most
+--        recently saved callgraph.
 function M.load_callgraph(args)
     local cache = require("perfanno.cache")
-    cache.load_index()
-    local cg_data = cache.load_callgraph(args.args)
+    local index = cache.load_index()
+    local name = args.args
+
+    if name == "" then
+        for cur_name, entry in pairs(index) do
+            if name == "" or entry.last_modified > index[name].last_modified then
+                name = cur_name
+            end
+        end
+    end
+
+    local cg_data = cache.load_callgraph(name)
 
     if not cg_data then
-        vim.notify("Could not find callgraph \"" .. args.args .. "\" in cache!", vim.log.levels.ERROR)
+        vim.notify("Could not find callgraph \"" .. name .. "\" in cache!", vim.log.levels.ERROR)
         return
     end
 
     local callgraph = require("perfanno.callgraph")
     callgraph.callgraphs = cg_data.callgraphs
     callgraph.events = cg_data.events
-    vim.notify("Callgraph \"" .. args.args .. "\" has been loaded!")
+    vim.notify("Callgraph \"" .. name .. "\" has been loaded!")
 
     if config.values.annotate_after_load then
         M.annotate()
