@@ -21,6 +21,11 @@ function M.setup(opts)
     cmd('PerfLuaProfileStart', M.lua_profile_start, {})
     cmd('PerfLuaProfileStop', M.lua_profile_stop, {})
 
+    -- Commands for interacting with the callgraph cache
+    cmd('PerfCallgraphSave', M.save_callgraph, {nargs = 1})
+    cmd('PerfCallgraphLoad', M.load_callgraph, {nargs = '?'})
+    cmd('PerfCallgraphDelete', M.delete_callgraph, {nargs = 1})
+
     -- Commands that control what and how to annotate.
     cmd('PerfPickEvent', function() M.pick_event() end, {})
     cmd('PerfCycleFormat', M.cycle_format, {})
@@ -98,6 +103,58 @@ function M.load_traces(traces)
         if config.values.annotate_after_load then
             M.annotate()
         end
+    end
+end
+
+--- Saves currently loaded callgraph into the cache (experimental).
+-- @param args Command args, we expect a name "args.args" for the cache.
+function M.save_callgraph(args)
+    local callgraph = require("perfanno.callgraph")
+
+    if not callgraph.is_loaded() then
+        vim.notify("No callgraph is loaded!", vim.log.levels.ERROR)
+        return
+    end
+
+    local cache = require("perfanno.cache")
+    cache.load_index()
+    cache.store_callgraph({callgraphs = callgraph.callgraphs, events = callgraph.events}, args.args)
+    cache.store_index()
+end
+
+--- Loads callgraph from the cache (experimental).
+-- @param args Command args, we expect a name "args.args" for the cache.
+function M.load_callgraph(args)
+    local cache = require("perfanno.cache")
+    cache.load_index()
+    local cg_data = cache.load_callgraph(args.args)
+
+    if not cg_data then
+        vim.notify("Could not find callgraph \"" .. args.args .. "\" in cache!", vim.log.levels.ERROR)
+        return
+    end
+
+    local callgraph = require("perfanno.callgraph")
+    callgraph.callgraphs = cg_data.callgraphs
+    callgraph.events = cg_data.events
+    vim.notify("Callgraph \"" .. args.args .. "\" has been loaded!")
+
+    if config.values.annotate_after_load then
+        M.annotate()
+    end
+end
+
+--- Deletes callgraph from the cache (experimental).
+-- @param args Command args, we expect a name "args.args" for the cache.
+function M.delete_callgraph(args)
+    local cache = require("perfanno.cache")
+    cache.load_index()
+    local deleted_file = cache.delete_callgraph(args.args)
+
+    if deleted_file then
+        vim.notify("Deleted callgraph \"" .. args.args .. "\" at: " .. deleted_file)
+    else
+        vim.notify("Could not find callgraph \"" .. args.args .. "\" in cache!", vim.log.levels.ERROR)
     end
 end
 
