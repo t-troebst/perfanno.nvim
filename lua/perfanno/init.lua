@@ -198,7 +198,12 @@ function M.pick_event(cont)
     else
         vim.ui.select(callgraph.events, {prompt = "Select event type to annotate: "}, function(event)
             config.selected_event = event or config.selected_event
-            new_cont()
+
+            if config.selected_event then
+                new_cont()
+            else
+                vim.notify("No event was selected!")
+            end
         end)
     end
 end
