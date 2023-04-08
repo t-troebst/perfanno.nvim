@@ -258,8 +258,7 @@ We try to get canonical representations of the paths but this is generally most 
 
 ## Future Goals
 
+* Add telescope finder to load / delete callgraphs from the cache.
 * Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder).
 * Add support for `:FindHottestCallers` with increased depth.
 * Add `:FindHottestCallees` which is essentially `:FindHottestLines` but relative to stack traces that go through a certain selection.
-* Perf can take quite a while to generate reports from large files, maybe add some kind of caching?
-* On that note, add some kind of progress indication while reading the report?
