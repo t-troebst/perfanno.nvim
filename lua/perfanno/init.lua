@@ -22,7 +22,7 @@ function M.setup(opts)
     cmd('PerfLuaProfileStop', M.lua_profile_stop, {})
 
     -- Commands that control what and how to annotate.
-    cmd('PerfPickEvent', M.pick_event, {})
+    cmd('PerfPickEvent', function() M.pick_event() end, {})
     cmd('PerfCycleFormat', M.cycle_format, {})
 
     -- Commands that perform annotations.
