@@ -16,7 +16,7 @@ end
 -- @param f Number to round.
 -- @return Closest integer.
 function M.round(f)
-    return math.floor(f + 0.5)  -- good enough...
+    return math.floor(f + 0.5) -- good enough...
 end
 
 --- Iterator that iterates through consecutive pairs in a list.
@@ -48,7 +48,7 @@ function M.min_nil(x, y)
         return x
     end
 
-    return math.min(x,  y)
+    return math.min(x, y)
 end
 
 --- Computes minimum of two values but interprets nil as minus infinity.
@@ -64,7 +64,7 @@ function M.max_nil(x, y)
         return x
     end
 
-    return math.max(x,  y)
+    return math.max(x, y)
 end
 
 --- Determines whether something is a Lua table.
@@ -96,20 +96,20 @@ local num_highlights = 0
 
 function M.make_fg_highlight(color)
     num_highlights = num_highlights + 1
-    vim.api.nvim_set_hl(0, "PerfAnno" .. num_highlights, {fg = color})
+    vim.api.nvim_set_hl(0, "PerfAnno" .. num_highlights, { fg = color })
 
     return "PerfAnno" .. num_highlights
 end
 
 function M.make_bg_highlight(color)
     num_highlights = num_highlights + 1
-    vim.api.nvim_set_hl(0, "PerfAnno" .. num_highlights, {bg = color})
+    vim.api.nvim_set_hl(0, "PerfAnno" .. num_highlights, { bg = color })
 
     return "PerfAnno" .. num_highlights
 end
 
 function M.make_fg_highlights(start, stop, num)
-    local colors = M.rgb_color_gradient({M.hex_to_rgb(start)}, {M.hex_to_rgb(stop)}, num)
+    local colors = M.rgb_color_gradient({ M.hex_to_rgb(start) }, { M.hex_to_rgb(stop) }, num)
     local highlights = {}
 
     for _, color in ipairs(colors) do
@@ -120,7 +120,7 @@ function M.make_fg_highlights(start, stop, num)
 end
 
 function M.make_bg_highlights(start, stop, num)
-    local colors = M.rgb_color_gradient({M.hex_to_rgb(start)}, {M.hex_to_rgb(stop)}, num)
+    local colors = M.rgb_color_gradient({ M.hex_to_rgb(start) }, { M.hex_to_rgb(stop) }, num)
     local highlights = {}
 
     for _, color in ipairs(colors) do
@@ -143,7 +143,7 @@ end
 
 function M.rgb_color_gradient(start, stop, num)
     if num == 1 then
-        return {stop}
+        return { stop }
     end
 
     local colors = {}
@@ -152,9 +152,11 @@ function M.rgb_color_gradient(start, stop, num)
     local r_stop, g_stop, b_stop = unpack(stop)
 
     for i = 1, num do
-        local color = {r_start + (r_stop - r_start) * i / num,
-                       g_start + (g_stop - g_start) * i / num,
-                       b_start + (b_stop - b_start) * i / num}
+        local color = {
+            r_start + (r_stop - r_start) * i / num,
+            g_start + (g_stop - g_start) * i / num,
+            b_start + (b_stop - b_start) * i / num,
+        }
         table.insert(colors, color)
     end
 

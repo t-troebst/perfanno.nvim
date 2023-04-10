@@ -17,18 +17,18 @@ local function entry_from_line(file, linenr, count)
     if file == "symbol" then
         return {
             symbol = linenr,
-            file = nil,  -- TODO: maybe could have symbols with file but no line?
+            file = nil, -- TODO: maybe could have symbols with file but no line?
             linenr = nil,
             linenr_end = nil,
-            count = count
+            count = count,
         }
     else
         return {
-            symbol = nil,  -- TODO: we might have this information
+            symbol = nil, -- TODO: we might have this information
             file = file,
             linenr = linenr,
             linenr_end = linenr,
-            count = count
+            count = count,
         }
     end
 end
@@ -44,7 +44,7 @@ local function entry_from_symbol(cg, file, symbol)
         file = file,
         linenr = cg.symbols[file][symbol].min_line,
         linenr_end = cg.symbols[file][symbol].max_line,
-        count = cg.symbols[file][symbol].count
+        count = cg.symbols[file][symbol].count,
     }
 end
 
@@ -114,7 +114,7 @@ function M.hottest_callers_table(event, file, line_begin, line_end)
 
     for linenr, node_info in pairs(cg.node_info[file]) do
         if linenr >= line_begin and linenr <= line_end then
-            table.insert(lines, {file, linenr})
+            table.insert(lines, { file, linenr })
             total_count = total_count + node_info.rec_count
         end
     end
@@ -151,7 +151,7 @@ function M.hottest_callees_table(event, file, line_begin, line_end)
 
     for linenr, node_info in pairs(cg.node_info[file]) do
         if linenr >= line_begin and linenr <= line_end then
-            table.insert(lines, {file, linenr})
+            table.insert(lines, { file, linenr })
             total_count = total_count + node_info.rec_count
         end
     end
@@ -283,7 +283,7 @@ local function find_hottest(event, prompt, table_fn)
         format_item = function(entry)
             return M.format_entry(entry, total_count)
         end,
-        kind = "File"
+        kind = "File",
     }
 
     vim.ui.select(entries, opts, go_to_entry)

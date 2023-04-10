@@ -52,13 +52,13 @@ function M.get_context_lines(bufnr, linenr, column, type_patterns)
     while node do
         for _, pattern in ipairs(type_patterns) do
             if node:type():match(pattern) then
-                local srow, _, erow, _ = ts_utils.get_vim_range({node:range()}, bufnr)
+                local srow, _, erow, _ = ts_utils.get_vim_range({ node:range() }, bufnr)
 
                 return srow, erow
             end
         end
         node = node:parent()
-    end  -- return nil
+    end -- return nil
 end
 
 --- Get lines of the function that surrounds a given position.
@@ -84,7 +84,7 @@ function M.get_function_lines(bufnr, linenr, column)
     end
 
     local patterns = config.values.ts_function_patterns[lang]
-                     or config.values.ts_function_patterns.default
+        or config.values.ts_function_patterns.default
     return M.get_context_lines(bufnr, linenr, column, patterns)
 end
 

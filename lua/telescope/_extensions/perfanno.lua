@@ -20,7 +20,7 @@ local find_hottest = require("perfanno.find_hottest")
 -- @param total_count Total count of events for relative annotations.
 -- @return Returns the telescope finder.
 local function finder_from_table(entries, total_count)
-    local opts = {results = entries}
+    local opts = { results = entries }
 
     opts.entry_maker = function(entry)
         if not config.should_display(entry.count, total_count) then
@@ -34,9 +34,9 @@ local function finder_from_table(entries, total_count)
             lnum_end = entry.linenr_end or 1,
             path = entry.file or "",
             display = display,
-            ordinal = display,  -- TODO: better ordinal?
+            ordinal = display, -- TODO: better ordinal?
             row = entry.linenr or 1,
-            col = 0
+            col = 0,
         }
     end
 
@@ -58,9 +58,15 @@ local function annotated_previewer(annotate_fn)
 
             local update_cursor = function(bufnr)
                 vim.api.nvim_buf_clear_namespace(bufnr, previewer_ns, 0, -1)
-                vim.api.nvim_buf_add_highlight(bufnr, previewer_ns, "TelescopePreviewLine",
-                                               entry.lnum - 1, 0, -1)
-                vim.api.nvim_win_set_cursor(self.state.winid, {entry.lnum, 0})
+                vim.api.nvim_buf_add_highlight(
+                    bufnr,
+                    previewer_ns,
+                    "TelescopePreviewLine",
+                    entry.lnum - 1,
+                    0,
+                    -1
+                )
+                vim.api.nvim_win_set_cursor(self.state.winid, { entry.lnum, 0 })
                 vim.api.nvim_buf_call(bufnr, function()
                     vim.cmd("norm! zz")
                 end)
@@ -76,7 +82,7 @@ local function annotated_previewer(annotate_fn)
                         end
 
                         pcall(update_cursor, bufnr)
-                    end
+                    end,
                 }
 
                 tconf.buffer_previewer_maker(entry.path, self.state.bufnr, opts)
@@ -105,13 +111,16 @@ function pa_actions.hottest_callers(bufnr)
         return
     end
 
-    local new_entries, new_count =
-        find_hottest.hottest_callers_table(config.selected_event, selection.path,
-                                           selection.lnum, selection.lnum_end)
+    local new_entries, new_count = find_hottest.hottest_callers_table(
+        config.selected_event,
+        selection.path,
+        selection.lnum,
+        selection.lnum_end
+    )
     local finder = finder_from_table(new_entries, new_count)
     local picker = state.get_current_picker(bufnr)
 
-    picker:refresh(finder, {reset_prompt = true})
+    picker:refresh(finder, { reset_prompt = true })
 end
 
 --- Telescope action that changes the current finder to the hottest callees of the selected entry.
@@ -124,13 +133,16 @@ function pa_actions.hottest_callees(bufnr)
         return
     end
 
-    local new_entries, new_count =
-        find_hottest.hottest_callees_table(config.selected_event, selection.path,
-                                           selection.lnum, selection.lnum_end)
+    local new_entries, new_count = find_hottest.hottest_callees_table(
+        config.selected_event,
+        selection.path,
+        selection.lnum,
+        selection.lnum_end
+    )
     local finder = finder_from_table(new_entries, new_count)
     local picker = state.get_current_picker(bufnr)
 
-    picker:refresh(finder, {reset_prompt = true})
+    picker:refresh(finder, { reset_prompt = true })
 end
 
 local popts = {
@@ -143,8 +155,8 @@ local popts = {
         ["n"] = {
             ["gu"] = pa_actions.hottest_callers,
             ["gd"] = pa_actions.hottest_callees,
-        }
-    }
+        },
+    },
 }
 
 --- Attaches this plugins' mappings to the finders.
@@ -184,12 +196,14 @@ local function find_hottest_lines(opts)
     perfanno.with_event(function()
         local entries, total_count = find_hottest.hottest_lines_table(config.selected_event)
 
-        pickers.new(vim.tbl_deep_extend("force", popts, opts), {
-            prompt_title = "",
-            finder = finder_from_table(entries, total_count),
-            sorter = tconf.file_sorter{},
-            previewer = annotated_previewer(annotate_file)
-        }):find()
+        pickers
+            .new(vim.tbl_deep_extend("force", popts, opts), {
+                prompt_title = "",
+                finder = finder_from_table(entries, total_count),
+                sorter = tconf.file_sorter {},
+                previewer = annotated_previewer(annotate_file),
+            })
+            :find()
     end)
 end
 
@@ -201,12 +215,14 @@ local function find_hottest_symbols(opts)
     perfanno.with_event(function()
         local entries, total_count = find_hottest.hottest_symbols_table(config.selected_event)
 
-        pickers.new(vim.tbl_deep_extend("force", popts, opts), {
-            prompt_title = "",
-            finder = finder_from_table(entries, total_count),
-            sorter = tconf.file_sorter{},
-            previewer = annotated_previewer(annotate_file),
-        }):find()
+        pickers
+            .new(vim.tbl_deep_extend("force", popts, opts), {
+                prompt_title = "",
+                finder = finder_from_table(entries, total_count),
+                sorter = tconf.file_sorter {},
+                previewer = annotated_previewer(annotate_file),
+            })
+            :find()
     end)
 end
 
@@ -216,15 +232,20 @@ local function find_hottest_callers_function(opts)
     opts = opts or {}
 
     perfanno.with_event(function()
-        local entries, total_count = find_hottest.hottest_callers_function_table(config.selected_event)
-        if not entries then return end
+        local entries, total_count =
+            find_hottest.hottest_callers_function_table(config.selected_event)
+        if not entries then
+            return
+        end
 
-        pickers.new(vim.tbl_deep_extend("force", popts, opts), {
-            prompt_title = "",
-            finder = finder_from_table(entries, total_count),
-            sorter = tconf.file_sorter{},
-            previewer = annotated_previewer(annotate_file)
-        }):find()
+        pickers
+            .new(vim.tbl_deep_extend("force", popts, opts), {
+                prompt_title = "",
+                finder = finder_from_table(entries, total_count),
+                sorter = tconf.file_sorter {},
+                previewer = annotated_previewer(annotate_file),
+            })
+            :find()
     end)
 end
 
@@ -234,15 +255,20 @@ local function find_hottest_callers_selection(opts)
     opts = opts or {}
 
     perfanno.with_event(function()
-        local entries, total_count = find_hottest.hottest_callers_selection_table(config.selected_event)
-        if not entries then return end
+        local entries, total_count =
+            find_hottest.hottest_callers_selection_table(config.selected_event)
+        if not entries then
+            return
+        end
 
-        pickers.new(vim.tbl_deep_extend("force", popts, opts), {
-            prompt_title = "",
-            finder = finder_from_table(entries, total_count),
-            sorter = tconf.file_sorter{},
-            previewer = annotated_previewer(annotate_file)
-        }):find()
+        pickers
+            .new(vim.tbl_deep_extend("force", popts, opts), {
+                prompt_title = "",
+                finder = finder_from_table(entries, total_count),
+                sorter = tconf.file_sorter {},
+                previewer = annotated_previewer(annotate_file),
+            })
+            :find()
     end)
 end
 
@@ -264,5 +290,5 @@ return telescope.register_extension {
 
         -- Actions
         actions = pa_actions,
-    }
+    },
 }

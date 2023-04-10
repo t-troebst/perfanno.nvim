@@ -13,34 +13,36 @@ function M.setup(opts)
     local cmd = vim.api.nvim_create_user_command
 
     -- Commands for loading call graph information via perf / flamegraph.
-    cmd('PerfLoadFlat', M.load_perf_flat, {})
-    cmd('PerfLoadCallGraph', M.load_perf_callgraph, {})
-    cmd('PerfLoadFlameGraph', M.load_flamegraph, {})
+    cmd("PerfLoadFlat", M.load_perf_flat, {})
+    cmd("PerfLoadCallGraph", M.load_perf_callgraph, {})
+    cmd("PerfLoadFlameGraph", M.load_flamegraph, {})
 
     -- Lua profiling via the internal LuaJit profiler
-    cmd('PerfLuaProfileStart', M.lua_profile_start, {})
-    cmd('PerfLuaProfileStop', M.lua_profile_stop, {})
+    cmd("PerfLuaProfileStart", M.lua_profile_start, {})
+    cmd("PerfLuaProfileStop", M.lua_profile_stop, {})
 
     -- Commands for interacting with the callgraph cache
-    cmd('PerfCacheSave', M.save_callgraph, {nargs = 1, complete = M.list_callgraphs})
-    cmd('PerfCacheLoad', M.load_callgraph, {nargs = '?', complete = M.list_callgraphs})
-    cmd('PerfCacheDelete', M.delete_callgraph, {nargs = 1, complete = M.list_callgraphs})
+    cmd("PerfCacheSave", M.save_callgraph, { nargs = 1, complete = M.list_callgraphs })
+    cmd("PerfCacheLoad", M.load_callgraph, { nargs = "?", complete = M.list_callgraphs })
+    cmd("PerfCacheDelete", M.delete_callgraph, { nargs = 1, complete = M.list_callgraphs })
 
     -- Commands that control what and how to annotate.
-    cmd('PerfPickEvent', function() M.pick_event() end, {})
-    cmd('PerfCycleFormat', M.cycle_format, {})
+    cmd("PerfPickEvent", function()
+        M.pick_event()
+    end, {})
+    cmd("PerfCycleFormat", M.cycle_format, {})
 
     -- Commands that perform annotations.
-    cmd('PerfAnnotate', M.annotate, {})
-    cmd('PerfToggleAnnotations', M.toggle_annotations, {})
-    cmd('PerfAnnotateFunction', M.annotate_function, {})
-    cmd('PerfAnnotateSelection', M.annotate_selection, { range = true })
+    cmd("PerfAnnotate", M.annotate, {})
+    cmd("PerfToggleAnnotations", M.toggle_annotations, {})
+    cmd("PerfAnnotateFunction", M.annotate_function, {})
+    cmd("PerfAnnotateSelection", M.annotate_selection, { range = true })
 
     -- Commands that find hot code lines.
-    cmd('PerfHottestSymbols', M.find_hottest_symbols, {})
-    cmd('PerfHottestLines', M.find_hottest_lines, {})
-    cmd('PerfHottestCallersFunction', M.find_hottest_callers_function, {})
-    cmd('PerfHottestCallersSelection', M.find_hottest_callers_selection, { range = true })
+    cmd("PerfHottestSymbols", M.find_hottest_symbols, {})
+    cmd("PerfHottestLines", M.find_hottest_lines, {})
+    cmd("PerfHottestCallersFunction", M.find_hottest_callers_function, {})
+    cmd("PerfHottestCallersSelection", M.find_hottest_callers_selection, { range = true })
 
     -- Setup automatic annotation of new buffers.
     local augroup = vim.api.nvim_create_augroup("PerfAnno", { clear = true })
@@ -49,7 +51,7 @@ function M.setup(opts)
             group = augroup,
             pattern = "*",
             callback = M.try_annotate_current,
-            desc = 'perfanno: try_annotate_current'
+            desc = "perfanno: try_annotate_current",
         })
     end
 end
@@ -66,7 +68,7 @@ local function get_data_file(default)
         local input_opts = {
             prompt = "Input path to " .. default .. ": ",
             default = vim.fn.getcwd() .. "/",
-            completion = "file"
+            completion = "file",
         }
 
         vim.schedule(function()
@@ -131,7 +133,10 @@ function M.save_callgraph(args)
 
     local cache = require("perfanno.cache")
     cache.load_index()
-    cache.store_callgraph({callgraphs = callgraph.callgraphs, events = callgraph.events}, args.args)
+    cache.store_callgraph(
+        { callgraphs = callgraph.callgraphs, events = callgraph.events },
+        args.args
+    )
     cache.store_index()
 end
 
@@ -154,14 +159,14 @@ function M.load_callgraph(args)
     local cg_data = cache.load_callgraph(name)
 
     if not cg_data then
-        vim.notify("Could not find callgraph \"" .. name .. "\" in cache!", vim.log.levels.ERROR)
+        vim.notify('Could not find callgraph "' .. name .. '" in cache!', vim.log.levels.ERROR)
         return
     end
 
     local callgraph = require("perfanno.callgraph")
     callgraph.callgraphs = cg_data.callgraphs
     callgraph.events = cg_data.events
-    vim.notify("Callgraph \"" .. name .. "\" has been loaded!")
+    vim.notify('Callgraph "' .. name .. '" has been loaded!')
 
     if config.values.annotate_after_load then
         M.annotate()
@@ -176,9 +181,9 @@ function M.delete_callgraph(args)
     local deleted_file = cache.delete_callgraph(args.args)
 
     if deleted_file then
-        vim.notify("Deleted callgraph \"" .. args.args .. "\" at: " .. deleted_file)
+        vim.notify('Deleted callgraph "' .. args.args .. '" at: ' .. deleted_file)
     else
-        vim.notify("Could not find callgraph \"" .. args.args .. "\" in cache!", vim.log.levels.ERROR)
+        vim.notify('Could not find callgraph "' .. args.args .. '" in cache!', vim.log.levels.ERROR)
     end
 end
 
@@ -220,7 +225,7 @@ local function parse_flamegraph(perf_log)
         table.insert(traces, trace)
     end
 
-    return {time = traces}
+    return { time = traces }
 end
 
 --- Loads flamegraph file into the call graph.
@@ -277,15 +282,19 @@ function M.pick_event(cont)
         config.selected_event = callgraph.events[1]
         new_cont()
     else
-        vim.ui.select(callgraph.events, {prompt = "Select event type to annotate: "}, function(event)
-            config.selected_event = event or config.selected_event
+        vim.ui.select(
+            callgraph.events,
+            { prompt = "Select event type to annotate: " },
+            function(event)
+                config.selected_event = event or config.selected_event
 
-            if config.selected_event then
-                new_cont()
-            else
-                vim.notify("No event was selected!", vim.log.levels.ERROR)
+                if config.selected_event then
+                    new_cont()
+                else
+                    vim.notify("No event was selected!", vim.log.levels.ERROR)
+                end
             end
-        end)
+        )
     end
 end
 

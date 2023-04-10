@@ -48,7 +48,7 @@ end
 -- @return node info, total count, max count, symbols
 -- TODO: document more
 local function process_traces(traces)
-    local node_info = {symbol = {}}
+    local node_info = { symbol = {} }
     local total_count = 0
     local max_count = 0
     local symbols = {}
@@ -56,8 +56,8 @@ local function process_traces(traces)
     real_names = {}
 
     for _, trace in ipairs(traces) do
-        local visited_lines = {}  -- needed to get sane results with recursion
-        local visited_symbols = {}  -- ditto
+        local visited_lines = {} -- needed to get sane results with recursion
+        local visited_symbols = {} -- ditto
 
         total_count = total_count + trace.count
 
@@ -69,8 +69,11 @@ local function process_traces(traces)
                 visited_lines[file .. ":" .. linenr] = true
 
                 util.init(node_info, file, {})
-                util.init(node_info[file], linenr, {count = 0, rec_count = 0,
-                                                    out_counts = {}, in_counts = {}})
+                util.init(
+                    node_info[file],
+                    linenr,
+                    { count = 0, rec_count = 0, out_counts = {}, in_counts = {} }
+                )
 
                 node_info[file][linenr].count = node_info[file][linenr].count + trace.count
                 max_count = math.max(max_count, node_info[file][linenr].count)
@@ -85,7 +88,7 @@ local function process_traces(traces)
                     visited_symbols[file .. ":" .. symbol] = true
 
                     util.init(symbols, file, {})
-                    util.init(symbols[file], symbol, {count = 0, min_line = nil, max_line = nil})
+                    util.init(symbols[file], symbol, { count = 0, min_line = nil, max_line = nil })
 
                     symbols[file][symbol].count = symbols[file][symbol].count + trace.count
                 end
@@ -98,7 +101,6 @@ local function process_traces(traces)
             end
         end
 
-
         -- Compute in / out neighbor counts for caller / callee lookup.
         -- Note: we *don't* do any recursion detection here because we will compare these numbers to
         -- rec_count later!
@@ -108,13 +110,13 @@ local function process_traces(traces)
 
             util.init(node_info[file1][linenr1].out_counts, file2, {})
             util.init(node_info[file1][linenr1].out_counts[file2], linenr2, 0)
-            node_info[file1][linenr1].out_counts[file2][linenr2] =
-                node_info[file1][linenr1].out_counts[file2][linenr2] + trace.count
+            node_info[file1][linenr1].out_counts[file2][linenr2] = node_info[file1][linenr1].out_counts[file2][linenr2]
+                + trace.count
 
             util.init(node_info[file2][linenr2].in_counts, file1, {})
             util.init(node_info[file2][linenr2].in_counts[file1], linenr1, 0)
-            node_info[file2][linenr2].in_counts[file1][linenr1] =
-                node_info[file2][linenr2].in_counts[file1][linenr1] + trace.count
+            node_info[file2][linenr2].in_counts[file1][linenr1] = node_info[file2][linenr2].in_counts[file1][linenr1]
+                + trace.count
         end
     end
 
@@ -176,7 +178,7 @@ function M.load_traces(traces)
         table.insert(M.events, event)
 
         local ni, sy, tc, mc = process_traces(ts)
-        M.callgraphs[event] = {node_info = ni, symbols = sy, total_count = tc, max_count = mc}
+        M.callgraphs[event] = { node_info = ni, symbols = sy, total_count = tc, max_count = mc }
     end
 end
 

@@ -130,7 +130,7 @@ function M.store_callgraph(data, name, file)
     file = file or M.suggest_filename()
     index[name] = {
         file = file,
-        last_modified = vim.fn.localtime()
+        last_modified = vim.fn.localtime(),
     }
 
     store_json(file, data)

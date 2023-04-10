@@ -12,8 +12,8 @@ local defaults = {
     --   "minimum" is the minimum value below which lines will not be annotated.
     -- Note: this also controls what shows up in the telescope finders.
     formats = {
-        {percent = true, format = "%.2f%%", minimum = 0.5},
-        {percent = false, format = "%d", minimum = 1}
+        { percent = true, format = "%.2f%%", minimum = 0.5 },
+        { percent = false, format = "%d", minimum = 1 },
     },
 
     -- Automatically annotate all buffers after :PerfLoadFlat and :PerfLoadCallGraph.
@@ -92,7 +92,7 @@ function M.format(count, total)
 
     if val >= fmt.minimum then
         return string.format(fmt.format, val)
-    end  -- return nil
+    end -- return nil
 end
 
 return M

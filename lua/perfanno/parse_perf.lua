@@ -48,7 +48,7 @@ local function get_command_output(cmd)
         on_exit = function(_, code)
             exit_code = code
             coroutine.resume(co)
-        end
+        end,
     })
 
     coroutine.yield()
@@ -66,8 +66,10 @@ function M.perf_flat(perf_data)
     local exit_code, lines = get_command_output(cmd)
 
     if exit_code ~= 0 then
-        vim.notify("Perf returned non-zero exit code (" .. tostring(exit_code)
-            .. ") for command: " .. cmd, vim.log.levels.ERROR)
+        vim.notify(
+            "Perf returned non-zero exit code (" .. tostring(exit_code) .. ") for command: " .. cmd,
+            vim.log.levels.ERROR
+        )
         return {}
     end
 
@@ -82,19 +84,19 @@ function M.perf_flat(perf_data)
             current_event = event
         else
             local count, file, sep, linenr, symbol =
-            line:match("^%s*(%d+)%s+(.-)([+:])(%d+)%s+%[%.%]%s*(.*)")
+                line:match("^%s*(%d+)%s+(.-)([+:])(%d+)%s+%[%.%]%s*(.*)")
             local success = count and file and sep and linenr and symbol
 
             if success and tonumber(count) > 0 then
                 local trace
 
                 if vim.startswith(file, "/") then
-                    trace = {symbol = symbol, file = file, linenr = tonumber(linenr)}
+                    trace = { symbol = symbol, file = file, linenr = tonumber(linenr) }
                 else
-                    trace = {symbol = file .. sep .. linenr}
+                    trace = { symbol = file .. sep .. linenr }
                 end
 
-                table.insert(result[current_event], {count = tonumber(count), frames = {trace}})
+                table.insert(result[current_event], { count = tonumber(count), frames = { trace } })
             end
         end
     end
@@ -110,12 +112,15 @@ function M.perf_callgraph(perf_data)
     -- TODO: could this break if the user has a perf config?
     -- TODO: what versions of perf does this work for?
     local cmd = "perf report -g folded,0,caller,srcline,branch,count"
-                .. " --no-children --full-source-path --stdio -i " .. esc
+        .. " --no-children --full-source-path --stdio -i "
+        .. esc
     local exit_code, lines = get_command_output(cmd)
 
     if exit_code ~= 0 then
-        vim.notify("Perf returned non-zero exit code (" .. tostring(exit_code)
-            .. ") for command: " .. cmd, vim.log.levels.ERROR)
+        vim.notify(
+            "Perf returned non-zero exit code (" .. tostring(exit_code) .. ") for command: " .. cmd,
+            vim.log.levels.ERROR
+        )
         return {}
     end
 
@@ -132,7 +137,7 @@ function M.perf_callgraph(perf_data)
             local count, traceline = line:match("^(%d+) (.*)$")
 
             if count and traceline and tonumber(count) > 0 then
-                local tracedata = {count = tonumber(count), frames = {}}
+                local tracedata = { count = tonumber(count), frames = {} }
 
                 for func in traceline:gmatch("[^;]+") do
                     local symbol, file, linenr = func:match("^(.-)%s*(/.*):(%d+)")
@@ -142,10 +147,10 @@ function M.perf_callgraph(perf_data)
                             symbol = nil
                         end
 
-                        local frame = {symbol = symbol, file = file, linenr = tonumber(linenr)}
+                        local frame = { symbol = symbol, file = file, linenr = tonumber(linenr) }
                         table.insert(tracedata.frames, frame)
-                    else  -- address, symbol, etc. (no debug info)
-                        table.insert(tracedata.frames, {symbol = func})
+                    else -- address, symbol, etc. (no debug info)
+                        table.insert(tracedata.frames, { symbol = func })
                     end
                 end
 

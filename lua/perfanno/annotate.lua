@@ -33,14 +33,20 @@ function M.add_annotation(bnr, linenr, count, total_count, max_count)
     if config.values.line_highlights then
         local i = 1 + util.round((#config.values.line_highlights - 1) * count / max_count)
 
-        vim.api.nvim_buf_add_highlight(bnr, namespace, config.values.line_highlights[i],
-            linenr - 1, 0, -1)
+        vim.api.nvim_buf_add_highlight(
+            bnr,
+            namespace,
+            config.values.line_highlights[i],
+            linenr - 1,
+            0,
+            -1
+        )
     end
 
     if config.values.vt_highlight then
         local vopts = {
-            virt_text = {{fmt, config.values.vt_highlight}},
-            virt_text_pos = "eol"
+            virt_text = { { fmt, config.values.vt_highlight } },
+            virt_text_pos = "eol",
         }
 
         vim.api.nvim_buf_set_extmark(bnr, namespace, linenr - 1, 0, vopts)
@@ -177,8 +183,12 @@ end
 --- Returns whether we *should* be annotating right now.
 -- @return true if callgraph is loaded for current event and annotations are toggled on.
 function M.should_annotate()
-    if callgraph.is_loaded() and config.selected_event
-        and callgraph.callgraphs[config.selected_event] and toggled then
+    if
+        callgraph.is_loaded()
+        and config.selected_event
+        and callgraph.callgraphs[config.selected_event]
+        and toggled
+    then
         return true
     end
 

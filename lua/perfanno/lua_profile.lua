@@ -12,8 +12,8 @@ local running = false
 -- @param thread Representation of the current call stack.
 -- @param samples Number of samples since the last call (should be 1).
 local function callback(thread, samples)
-    local trace = {count = samples, frames = {}}
-    local sdump = profile.dumpstack(thread, "f|pl;", 100)  -- TODO: make this configurable
+    local trace = { count = samples, frames = {} }
+    local sdump = profile.dumpstack(thread, "f|pl;", 100) -- TODO: make this configurable
 
     for symbol, location in sdump:gmatch("(.-)|(.-);") do
         if symbol:find(":") then
@@ -29,7 +29,7 @@ local function callback(thread, samples)
             linenr = nil
         end
 
-        table.insert(trace.frames, {symbol = symbol, file = file, linenr = linenr})
+        table.insert(trace.frames, { symbol = symbol, file = file, linenr = linenr })
     end
 
     table.insert(traces, trace)
@@ -50,7 +50,6 @@ function M.start(sampling_interval)
     profile.start("li" .. sampling_interval, callback)
 end
 
-
 --- Stops profiling and loads the current traces into the call graph.
 function M.stop()
     if not running then
@@ -60,7 +59,7 @@ function M.stop()
 
     running = false
     profile.stop()
-    callgraph.load_traces{time = traces}
+    callgraph.load_traces { time = traces }
 end
 
 --- Profiles a single function call and loads the resulting stack traces into the call graph.
