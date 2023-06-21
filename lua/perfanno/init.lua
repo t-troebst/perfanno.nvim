@@ -189,21 +189,29 @@ end
 
 --- Loads perf data into the call graph *without* call graph information (flat).
 M.load_perf_flat = coroutine.wrap(function()
-    local data_file = get_data_file("perf.data")
+    while true do
+        local data_file = get_data_file("perf.data")
 
-    if data_file then
-        vim.notify("Running perf...")
-        M.load_traces(require("perfanno.parse_perf").perf_flat(data_file))
+        if data_file then
+            vim.notify("Running perf...")
+            M.load_traces(require("perfanno.parse_perf").perf_flat(data_file))
+        end
+
+        coroutine.yield()
     end
 end)
 
 --- Loads perf data into the call graph *with* call graph information.
 M.load_perf_callgraph = coroutine.wrap(function()
-    local data_file = get_data_file("perf.data")
+    while true do
+        local data_file = get_data_file("perf.data")
 
-    if data_file then
-        vim.notify("Running perf...")
-        M.load_traces(require("perfanno.parse_perf").perf_callgraph(data_file))
+        if data_file then
+            vim.notify("Running perf...")
+            M.load_traces(require("perfanno.parse_perf").perf_callgraph(data_file))
+        end
+
+        coroutine.yield()
     end
 end)
 
@@ -230,10 +238,14 @@ end
 
 --- Loads flamegraph file into the call graph.
 M.load_flamegraph = coroutine.wrap(function()
-    local data_file = get_data_file("perf.log")
+    while true do
+        local data_file = get_data_file("perf.log")
 
-    if data_file then
-        M.load_traces(parse_flamegraph(data_file))
+        if data_file then
+            M.load_traces(parse_flamegraph(data_file))
+        end
+
+        coroutine.yield()
     end
 end)
 
