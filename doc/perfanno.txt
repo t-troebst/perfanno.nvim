@@ -44,7 +44,7 @@ to the hottest callers of any piece of code or any function. See
 ==============================================================================
 INSTALLATION                                             *perfanno-installation*
 
-This plugin requires NeoVim 0.7 and was tested with perf 5.16.
+This plugin requires NeoVim 0.9 and was tested with perf 5.16.
 If you wish to load a call graph with stack traces, you may need a relatively
 recent version of perf.
 
@@ -63,9 +63,6 @@ Dependencies~
 If you want to use the commands that jump to the hottest lines of code, you
 will probably want to have `telescope.nvim` installed, otherwise the plugin
 will fall back to |vim.ui.select|.
-
-If you want to use |:PerfAnnotateFunction| or |:PerfHottestCallersFunction|
-then you will also need `nvim-treesitter`.
 
 ==============================================================================
 CONFIGURATION                                                  *perfanno-config*
