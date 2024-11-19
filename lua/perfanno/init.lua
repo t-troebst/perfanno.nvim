@@ -60,7 +60,9 @@ end
 -- @param default Default file such as "perf.data" to look for.
 -- @return Data file
 local function get_data_file(default)
-    if vim.fn.filereadable(default) == 1 then
+    if config.values.get_path_callback ~= nil and type(config.values.get_path_callback) == "function" then
+        return config.values.get_path_callback()
+    elseif vim.fn.filereadable(default) == 1 then
         return default
     else
         local co = coroutine.running()
