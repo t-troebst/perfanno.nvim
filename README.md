@@ -1,7 +1,8 @@
 # PerfAnno: Profiling Annotations and Call Graph Exploration in NeoVim!
 
 PerfAnno is a simple lua plugin for NeoVim that allows you to annotate your code with output from perf or other call graph profilers that can generate stack traces in the [flamegraph](https://github.com/brendangregg/FlameGraph) format.
-The plugin itself is language agnostic and has been tested with C, C++, Lua, and Python.
+The plugin itself is language agnostic and has been tested with C, C++, Lua, and Python. PerfAno can be used to [profile neovim itself easily](#lua-profiling).
+
 Each line is annotated with the samples that occurred in that line *including* nested function calls. This requires that the perf.data file has been recorded with call graph information.
 If the profiler provides multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
 In addition, PerfAnno provides a Telescope (or `vim.ui.select`) finder that allows you to immediately jump to the hottest lines / functions in your code base or the hottest callers of a specific region of code (typically a function).
