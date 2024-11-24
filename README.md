@@ -38,7 +38,8 @@ It also sets convenient keybindings for most of the standard commands.
 local perfanno = require("perfanno")
 local util = require("perfanno.util")
 
-local bgcolor = vim.fn.synIDattr(vim.fn.hlID("Normal"), "bg", "gui")
+local bgcolor = string.format("#%06x",
+    vim.api.nvim_get_hl(0, {name = "Normal", link = false}).bg)
 
 perfanno.setup {
     -- Creates a 10-step RGB color gradient beween bgcolor and "#CC3300"
