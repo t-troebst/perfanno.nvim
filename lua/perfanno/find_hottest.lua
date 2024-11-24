@@ -112,6 +112,11 @@ function M.hottest_callers_table(event, file, line_begin, line_end)
     local total_count = 0
     local cg = callgraph.callgraphs[event]
 
+    if not cg.node_info[file] then
+        vim.notify("No callgraph information for current file!", vim.log.levels.ERROR)
+        return nil
+    end
+
     for linenr, node_info in pairs(cg.node_info[file]) do
         if linenr >= line_begin and linenr <= line_end then
             table.insert(lines, { file, linenr })
@@ -148,6 +153,11 @@ function M.hottest_callees_table(event, file, line_begin, line_end)
     local lines = {}
     local total_count = 0
     local cg = callgraph.callgraphs[event]
+
+    if not cg.node_info[file] then
+        vim.notify("No callgraph information for current file!", vim.log.levels.ERROR)
+        return nil
+    end
 
     for linenr, node_info in pairs(cg.node_info[file]) do
         if linenr >= line_begin and linenr <= line_end then
