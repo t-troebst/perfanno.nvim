@@ -21,7 +21,7 @@ require("perfanno").setup()
 ```
 
 This will give you the default settings which are shown [below](#configuration).
-However, you will most likely want to set `line_highlights` and `vt_highlight` to appropriate highlights and set some keybindings to make use of this plugin.
+However, you may want to set `line_highlights` and `vt_highlight` to appropriate highlights that do not clash with your color scheme and set some keybindings to make use of this plugin.
 See the provided [example config](#example-config).
 
 **Dependencies:**
@@ -38,12 +38,9 @@ It also sets convenient keybindings for most of the standard commands.
 local perfanno = require("perfanno")
 local util = require("perfanno.util")
 
-local bgcolor = string.format("#%06x",
-    vim.api.nvim_get_hl(0, {name = "Normal", link = false}).bg)
-
 perfanno.setup {
-    -- Creates a 10-step RGB color gradient beween bgcolor and "#CC3300"
-    line_highlights = util.make_bg_highlights(bgcolor, "#CC3300", 10),
+    -- Creates a 10-step RGB color gradient beween background color and "#CC3300"
+    line_highlights = util.make_bg_highlights(nil, "#CC3300", 10),
     vt_highlight = util.make_fg_highlight("#CC3300"),
 }
 
@@ -74,10 +71,10 @@ For the full list of potential configuration options, see the following setup ca
 
 ```lua
 require("perfanno").setup {
-    -- List of highlights that will be used to highlight hot lines (or nil to disable highlighting)
-    line_highlights = nil,
-    -- Highlight used for virtual text annotations (or nil to disable virtual text)
-    vt_highlight = nil,
+    -- List of highlights that will be used to highlight hot lines (or nil to disable).
+    line_highlights = require("perfanno.util").make_bg_highlights(nil, "#FF0000", 10),
+    -- Highlight used for virtual text annotations (or nil to disable virtual text).
+    vt_highlight = require("perfanno.util").make_fg_highlight("#FF0000"),
 
     -- Annotation formats that can be cycled between via :PerfCycleFormat
     --   "percent" controls whether percentages or absolute counts should be displayed

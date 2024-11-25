@@ -1,10 +1,11 @@
 --- Stores the global configuration options of this plugin.
+local util = require("perfanno.util")
 
 local defaults = {
     -- List of highlights that will be used to highlight hot lines (or nil to disable).
-    line_highlights = nil,
+    line_highlights = util.make_bg_highlights(nil, "#FF0000", 10),
     -- Highlight used for virtual text annotations (or nil to disable virtual text).
-    vt_highlight = nil,
+    vt_highlight = util.make_fg_highlight("#FF0000"),
 
     -- Annotation formats that can be cycled between via :PerfCycleFormat.
     --   "percent" controls whether percentages or absolute counts should be displayed.

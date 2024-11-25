@@ -119,7 +119,17 @@ function M.make_fg_highlights(start, stop, num)
     return highlights
 end
 
+--- Creates background highlights in a gradient from `start` to `stop` in `num` steps.
+-- @param start Start color in hex format. Can be nil in which case we try to get neovim's
+--        background color. If that fails, we default to black.
+-- @param stop Stop color in hex format.
+-- @num Total number of steps in the gradient.
 function M.make_bg_highlights(start, stop, num)
+    if not start then
+        local normal_hl = vim.api.nvim_get_hl(0, {name = "Normal", link = false})
+        start = string.format("#%06x", normal_hl.bg or 0)
+    end
+
     local colors = M.rgb_color_gradient({ M.hex_to_rgb(start) }, { M.hex_to_rgb(stop) }, num)
     local highlights = {}
 

@@ -55,8 +55,9 @@ installing, you should initialize the plugin by calling
     require("perfanno").setup{}
 <
 This will initialize PerfAnno with the default options detailed in
-|perfanno-config|. However, you will at the very least need to set highlights
-for the annotations, for example by using the |perfanno-example-config|.
+|perfanno-config|. However, you may want to set some custom highlights that do
+not clash with your color scheme and set some keybinds, for example by using
+the |perfanno-example-config|.
 
 Dependencies~
 
@@ -76,10 +77,11 @@ configuration is given below.
     require("perfanno").setup {
         -- List of highlights that will be used to highlight hot lines
         -- Set this to nil to disable highlighting
-        line_highlights = nil,
+        line_highlights = require("perfanno.util").make_bg_highlights(
+            nil, "#FF0000", 10),
         -- Highlight used for virtual text annotations
         -- Set this to nil to disable virtual text annotations
-        vt_highlight = nil,
+        vt_highlight = require("perfanno.util").make_fg_highlight("#FF0000"),
 
         -- Annotation formats that can be cycled between via :PerfCycleFormat
         --  percent: controls whether to display relative or absolute numbers
@@ -141,8 +143,9 @@ configuration is given below.
         }
     }
 <
-Note: using this configuration will not set any highlights nor will it set any
-keybindings. For a recommended example config see |perfanno-example-config|.
+Note: using this configuration will may leave you with ugly highlights nor
+will it set any keybindings. For a recommended example config see
+|perfanno-example-config|.
 
 EXAMPLE CONFIG                                         *perfanno-example-config*
 
@@ -153,12 +156,9 @@ keybindings.
     local perfanno = require("perfanno")
     local util = require("perfanno.util")
 
-    local bgcolor = string.format("#%06x",
-        vim.api.nvim_get_hl(0, {name = "Normal", link = false}).bg)
-
     perfanno.setup {
         -- Creates a 10-step RGB color gradient beween bgcolor and "#CC3300"
-        line_highlights = util.make_bg_highlights(bgcolor, "#CC3300", 10),
+        line_highlights = util.make_bg_highlights(nil, "#CC3300", 10),
         vt_highlight = util.make_fg_highlight("#CC3300"),
     }
 
