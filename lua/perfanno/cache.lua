@@ -101,8 +101,8 @@ end
 function M.suggest_filename()
     local nums = {}
 
-    for file, _ in pairs(index) do
-        local n = file:match("/callgraph%.(%d*)%.json$")
+    for _, entry in pairs(index) do
+        local n = entry.file:match("/callgraph%.(%d*)%.json$")
         if n then
             table.insert(nums, tonumber(n))
         end
