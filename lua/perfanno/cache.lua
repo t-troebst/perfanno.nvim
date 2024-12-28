@@ -134,6 +134,7 @@ function M.store_callgraph(data, name, file)
     }
 
     store_json(file, data)
+    return file
 end
 
 --- Loads callgraph data.

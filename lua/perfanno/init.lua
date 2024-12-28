@@ -133,11 +133,13 @@ function M.save_callgraph(args)
 
     local cache = require("perfanno.cache")
     cache.load_index()
-    cache.store_callgraph(
+    local file = cache.store_callgraph(
         { callgraphs = callgraph.callgraphs, events = callgraph.events },
         args.args
     )
     cache.store_index()
+
+    vim.notify('Stored callgraph "' .. args.args .. '" at: ' .. file)
 end
 
 --- Loads callgraph from the cache (experimental).
