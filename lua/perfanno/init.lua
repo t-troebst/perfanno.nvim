@@ -179,6 +179,7 @@ function M.delete_callgraph(args)
     local cache = require("perfanno.cache")
     cache.load_index()
     local deleted_file = cache.delete_callgraph(args.args)
+    cache.store_index()
 
     if deleted_file then
         vim.notify('Deleted callgraph "' .. args.args .. '" at: ' .. deleted_file)
