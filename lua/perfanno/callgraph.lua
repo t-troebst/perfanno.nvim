@@ -65,24 +65,26 @@ local function process_traces(traces)
         for _, frame in ipairs(trace.frames) do
             local symbol, file, linenr = frame_unpack(frame)
 
-            if not visited_lines[file .. ":" .. linenr] then
-                visited_lines[file .. ":" .. linenr] = true
+            if file and linenr then
+                if not visited_lines[file .. ":" .. linenr] then
+                    visited_lines[file .. ":" .. linenr] = true
 
-                util.init(node_info, file, {})
-                util.init(
-                    node_info[file],
-                    linenr,
-                    { count = 0, rec_count = 0, out_counts = {}, in_counts = {} }
-                )
+                    util.init(node_info, file, {})
+                    util.init(
+                        node_info[file],
+                        linenr,
+                        { count = 0, rec_count = 0, out_counts = {}, in_counts = {} }
+                    )
 
-                node_info[file][linenr].count = node_info[file][linenr].count + trace.count
-                max_count = math.max(max_count, node_info[file][linenr].count)
+                    node_info[file][linenr].count = node_info[file][linenr].count + trace.count
+                    max_count = math.max(max_count, node_info[file][linenr].count)
+                end
+
+                -- This counts how many times a line is called *including* recursive calls.
+                node_info[file][linenr].rec_count = node_info[file][linenr].rec_count + trace.count
             end
 
-            -- This counts how many times a line is called *including* recursive calls.
-            node_info[file][linenr].rec_count = node_info[file][linenr].rec_count + trace.count
-
-            if symbol then
+            if file and symbol then
                 -- Symbol counts need to be done separately because of potential recursion.
                 if not visited_symbols[file .. ":" .. symbol] then
                     visited_symbols[file .. ":" .. symbol] = true
@@ -108,15 +110,17 @@ local function process_traces(traces)
             local _, file1, linenr1 = frame_unpack(frame1)
             local _, file2, linenr2 = frame_unpack(frame2)
 
-            util.init(node_info[file1][linenr1].out_counts, file2, {})
-            util.init(node_info[file1][linenr1].out_counts[file2], linenr2, 0)
-            node_info[file1][linenr1].out_counts[file2][linenr2] = node_info[file1][linenr1].out_counts[file2][linenr2]
-                + trace.count
+            if file1 and linenr1 and file2 and linenr2 then
+                util.init(node_info[file1][linenr1].out_counts, file2, {})
+                util.init(node_info[file1][linenr1].out_counts[file2], linenr2, 0)
+                node_info[file1][linenr1].out_counts[file2][linenr2] = node_info[file1][linenr1].out_counts[file2][linenr2]
+                    + trace.count
 
-            util.init(node_info[file2][linenr2].in_counts, file1, {})
-            util.init(node_info[file2][linenr2].in_counts[file1], linenr1, 0)
-            node_info[file2][linenr2].in_counts[file1][linenr1] = node_info[file2][linenr2].in_counts[file1][linenr1]
-                + trace.count
+                util.init(node_info[file2][linenr2].in_counts, file1, {})
+                util.init(node_info[file2][linenr2].in_counts[file1], linenr1, 0)
+                node_info[file2][linenr2].in_counts[file1][linenr1] = node_info[file2][linenr2].in_counts[file1][linenr1]
+                    + trace.count
+            end
         end
     end
 
