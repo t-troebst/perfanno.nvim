@@ -376,10 +376,12 @@ function M.try_annotate_current()
     end
 end
 
---- Returns perfanno telescope extension, or fallback module if that is unavailable / disabled.
+--- Returns perfanno telescope/fzf-lua extension, or fallback module if that is unavailable / disabled.
 local function finder()
     if config.values.telescope.enabled then
         return require("telescope").extensions.perfanno
+    elseif config.values.fzf_lua.enabled then
+        return require("perfanno.fzf_lua")
     else
         return require("perfanno.find_hottest")
     end
