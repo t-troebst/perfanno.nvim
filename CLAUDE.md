@@ -16,6 +16,9 @@ make format
 # Run unit tests (requires plenary.nvim)
 make test
 
+# Run linter (lua-language-server)
+make lint
+
 # Test manually in Neovim
 nvim --noplugin -u minimal_init.lua
 ```

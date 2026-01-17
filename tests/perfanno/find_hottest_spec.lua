@@ -278,8 +278,14 @@ describe("find_hottest", function()
             assert.are.equal(15, total_count)
             assert.are.equal(2, #entries)
             -- Callers should be sorted by count descending
-            assert.are.equal(10, entries[1].count) -- main at line 10
-            assert.are.equal(5, entries[2].count) -- helper at line 30
+            ---@diagnostic disable-next-line: need-check-nil
+            local entry1 = entries[1]
+            ---@diagnostic disable-next-line: need-check-nil
+            local entry2 = entries[2]
+            assert.is_not_nil(entry1)
+            assert.are.equal(10, entry1.count) -- main at line 10
+            assert.is_not_nil(entry2)
+            assert.are.equal(5, entry2.count) -- helper at line 30
         end)
 
         it("should handle line range spanning multiple lines", function()
@@ -308,8 +314,11 @@ describe("find_hottest", function()
             local entries, _ = find_hottest.hottest_callers_table("cycles", "/tmp/test.c", 20, 25)
 
             assert.are.equal(1, #entries)
-            assert.are.equal(15, entries[1].count) -- main called both
-            assert.are.equal(5, entries[1].linenr)
+            ---@diagnostic disable-next-line: need-check-nil
+            local entry1 = entries[1]
+            assert.is_not_nil(entry1)
+            assert.are.equal(15, entry1.count) -- main called both
+            assert.are.equal(5, entry1.linenr)
         end)
 
         it("should return nil for file not in callgraph", function()
@@ -361,8 +370,14 @@ describe("find_hottest", function()
             assert.are.equal(15, total_count)
             assert.are.equal(2, #entries)
             -- Callees should be sorted by count descending
-            assert.are.equal(10, entries[1].count) -- foo at line 20
-            assert.are.equal(5, entries[2].count) -- bar at line 30
+            ---@diagnostic disable-next-line: need-check-nil
+            local entry1 = entries[1]
+            ---@diagnostic disable-next-line: need-check-nil
+            local entry2 = entries[2]
+            assert.is_not_nil(entry1)
+            assert.are.equal(10, entry1.count) -- foo at line 20
+            assert.is_not_nil(entry2)
+            assert.are.equal(5, entry2.count) -- bar at line 30
         end)
 
         it("should return nil for file not in callgraph", function()
@@ -402,9 +417,12 @@ describe("find_hottest", function()
             local entries, _ = find_hottest.hottest_callees_table("cycles", "/tmp/main.c", 10, 10)
 
             assert.are.equal(1, #entries)
-            assert.are.equal("/tmp/helper.c", entries[1].file)
-            assert.are.equal(20, entries[1].linenr)
-            assert.are.equal(10, entries[1].count)
+            ---@diagnostic disable-next-line: need-check-nil
+            local entry1 = entries[1]
+            assert.is_not_nil(entry1)
+            assert.are.equal("/tmp/helper.c", entry1.file)
+            assert.are.equal(20, entry1.linenr)
+            assert.are.equal(10, entry1.count)
         end)
     end)
 
