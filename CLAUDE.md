@@ -53,6 +53,29 @@ cache.lua (JSON persistence of callgraphs)
 - `callgraph.callgraphs` / `callgraph.events` - current profiling data
 - Uses Neovim namespaces for extmark isolation
 
+## Testing
+
+Tests use plenary.nvim's busted-style framework. Use canonical luassert assertion forms for lua_ls compatibility:
+
+```lua
+-- Use these canonical forms:
+assert.are.equal(expected, actual)
+assert.are.same(expected_table, actual_table)
+assert.is_true(value)
+assert.is_false(value)
+assert.is_nil(value)
+
+-- For error testing, use pcall:
+local ok = pcall(some_function, arg)
+assert.is_true(ok)   -- expect no error
+assert.is_false(ok)  -- expect error
+
+-- Avoid these (cause lua_ls warnings):
+assert.equals(...)        -- use assert.are.equal
+assert.has_no.errors(...) -- use pcall pattern
+assert.has.errors(...)    -- use pcall pattern
+```
+
 ## Extension API
 
 Custom profilers integrate via:
