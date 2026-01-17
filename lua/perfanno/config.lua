@@ -42,6 +42,10 @@ local defaults = {
         --     "weirdfunc",
         -- }
     },
+
+    -- Overwrite the default behaviour of prompting for the path to the perf.data with a custom function that returns
+    -- the path to a perf file as string.
+    get_path_callback = nil,
 }
 
 local M = {}
