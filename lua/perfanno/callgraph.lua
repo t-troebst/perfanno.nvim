@@ -30,18 +30,16 @@ local function frame_unpack(frame)
 
     local symbol, file, linenr = frame:match("^(.-)%s*(/.+):(%d+)$")
 
-    if symbol and file and linenr then
-        local file_path = vim.loop.fs_realpath(file)
+    if file and not real_names[file] then
+        real_names[file] = vim.loop.fs_realpath(file) or file
+    end
 
+    if symbol and file and linenr then
         if symbol == "" then
             symbol = nil
         end
 
-        if not file_path then
-            file_path = "symbol"
-        end
-
-        return symbol, file_path, tonumber(linenr)
+        return symbol, file, tonumber(linenr)
     end
 
     return nil, "symbol", frame
