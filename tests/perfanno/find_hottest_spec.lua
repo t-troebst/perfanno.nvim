@@ -44,12 +44,12 @@ describe("find_hottest", function()
 
             local entries, total_count = find_hottest.hottest_lines_table("cycles")
 
-            assert.equals(35, total_count)
-            assert.equals(3, #entries)
+            assert.are.equal(35, total_count)
+            assert.are.equal(3, #entries)
             -- Should be sorted descending by count
-            assert.equals(20, entries[1].count)
-            assert.equals(10, entries[2].count)
-            assert.equals(5, entries[3].count)
+            assert.are.equal(20, entries[1].count)
+            assert.are.equal(10, entries[2].count)
+            assert.are.equal(5, entries[3].count)
         end)
 
         it("should include correct file, linenr, count in each entry", function()
@@ -68,11 +68,11 @@ describe("find_hottest", function()
 
             local entries, _ = find_hottest.hottest_lines_table("cycles")
 
-            assert.equals(1, #entries)
-            assert.equals("/tmp/test.c", entries[1].file)
-            assert.equals(42, entries[1].linenr)
-            assert.equals(42, entries[1].linenr_end)
-            assert.equals(10, entries[1].count)
+            assert.are.equal(1, #entries)
+            assert.are.equal("/tmp/test.c", entries[1].file)
+            assert.are.equal(42, entries[1].linenr)
+            assert.are.equal(42, entries[1].linenr_end)
+            assert.are.equal(10, entries[1].count)
         end)
 
         it("should include entries from multiple files", function()
@@ -92,7 +92,7 @@ describe("find_hottest", function()
 
             local entries, _ = find_hottest.hottest_lines_table("cycles")
 
-            assert.equals(2, #entries)
+            assert.are.equal(2, #entries)
             -- Both should have count 10, order depends on sorting (same count = unstable)
             local files = { entries[1].file, entries[2].file }
             table.sort(files)
@@ -115,10 +115,10 @@ describe("find_hottest", function()
 
             local entries, _ = find_hottest.hottest_lines_table("cycles")
 
-            assert.equals(1, #entries)
+            assert.are.equal(1, #entries)
             assert.is_nil(entries[1].file)
-            assert.equals("unknown_func", entries[1].symbol)
-            assert.equals(10, entries[1].count)
+            assert.are.equal("unknown_func", entries[1].symbol)
+            assert.are.equal(10, entries[1].count)
         end)
 
         it("should filter entries below minimum threshold", function()
@@ -149,8 +149,8 @@ describe("find_hottest", function()
             local entries, _ = find_hottest.hottest_lines_table("cycles")
 
             -- Only the entry with count >= 10 should be included
-            assert.equals(1, #entries)
-            assert.equals(15, entries[1].count)
+            assert.are.equal(1, #entries)
+            assert.are.equal(15, entries[1].count)
         end)
     end)
 
@@ -183,12 +183,12 @@ describe("find_hottest", function()
 
             local entries, total_count = find_hottest.hottest_symbols_table("cycles")
 
-            assert.equals(35, total_count)
-            assert.equals(3, #entries)
+            assert.are.equal(35, total_count)
+            assert.are.equal(3, #entries)
             -- Should be sorted descending by count
-            assert.equals(20, entries[1].count)
-            assert.equals(10, entries[2].count)
-            assert.equals(5, entries[3].count)
+            assert.are.equal(20, entries[1].count)
+            assert.are.equal(10, entries[2].count)
+            assert.are.equal(5, entries[3].count)
         end)
 
         it("should include min_line and max_line for symbols", function()
@@ -209,11 +209,11 @@ describe("find_hottest", function()
 
             local entries, _ = find_hottest.hottest_symbols_table("cycles")
 
-            assert.equals(1, #entries)
-            assert.equals("foo", entries[1].symbol)
-            assert.equals("/tmp/test.c", entries[1].file)
-            assert.equals(10, entries[1].linenr) -- min_line
-            assert.equals(20, entries[1].linenr_end) -- max_line
+            assert.are.equal(1, #entries)
+            assert.are.equal("foo", entries[1].symbol)
+            assert.are.equal("/tmp/test.c", entries[1].file)
+            assert.are.equal(10, entries[1].linenr) -- min_line
+            assert.are.equal(20, entries[1].linenr_end) -- max_line
         end)
 
         it("should handle unknown symbols (file='symbol')", function()
@@ -238,14 +238,14 @@ describe("find_hottest", function()
 
             local entries, _ = find_hottest.hottest_symbols_table("cycles")
 
-            assert.equals(2, #entries)
+            assert.are.equal(2, #entries)
             -- First entry should be unknown_func (higher count)
-            assert.equals("unknown_func", entries[1].symbol)
+            assert.are.equal("unknown_func", entries[1].symbol)
             assert.is_nil(entries[1].file)
             assert.is_nil(entries[1].linenr)
             -- Second entry should be known_func
-            assert.equals("known_func", entries[2].symbol)
-            assert.equals("/tmp/test.c", entries[2].file)
+            assert.are.equal("known_func", entries[2].symbol)
+            assert.are.equal("/tmp/test.c", entries[2].file)
         end)
     end)
 
@@ -275,11 +275,11 @@ describe("find_hottest", function()
             local entries, total_count = find_hottest.hottest_callers_table("cycles", "/tmp/test.c", 20, 20)
 
             -- total_count is based on rec_count of lines in range
-            assert.equals(15, total_count)
-            assert.equals(2, #entries)
+            assert.are.equal(15, total_count)
+            assert.are.equal(2, #entries)
             -- Callers should be sorted by count descending
-            assert.equals(10, entries[1].count) -- main at line 10
-            assert.equals(5, entries[2].count) -- helper at line 30
+            assert.are.equal(10, entries[1].count) -- main at line 10
+            assert.are.equal(5, entries[2].count) -- helper at line 30
         end)
 
         it("should handle line range spanning multiple lines", function()
@@ -307,9 +307,9 @@ describe("find_hottest", function()
             -- Query callers for lines 20-25 (both foo and bar)
             local entries, _ = find_hottest.hottest_callers_table("cycles", "/tmp/test.c", 20, 25)
 
-            assert.equals(1, #entries)
-            assert.equals(15, entries[1].count) -- main called both
-            assert.equals(5, entries[1].linenr)
+            assert.are.equal(1, #entries)
+            assert.are.equal(15, entries[1].count) -- main called both
+            assert.are.equal(5, entries[1].linenr)
         end)
 
         it("should return nil for file not in callgraph", function()
@@ -358,11 +358,11 @@ describe("find_hottest", function()
             local entries, total_count = find_hottest.hottest_callees_table("cycles", "/tmp/test.c", 10, 10)
 
             -- total_count is based on rec_count of lines in range
-            assert.equals(15, total_count)
-            assert.equals(2, #entries)
+            assert.are.equal(15, total_count)
+            assert.are.equal(2, #entries)
             -- Callees should be sorted by count descending
-            assert.equals(10, entries[1].count) -- foo at line 20
-            assert.equals(5, entries[2].count) -- bar at line 30
+            assert.are.equal(10, entries[1].count) -- foo at line 20
+            assert.are.equal(5, entries[2].count) -- bar at line 30
         end)
 
         it("should return nil for file not in callgraph", function()
@@ -401,10 +401,10 @@ describe("find_hottest", function()
 
             local entries, _ = find_hottest.hottest_callees_table("cycles", "/tmp/main.c", 10, 10)
 
-            assert.equals(1, #entries)
-            assert.equals("/tmp/helper.c", entries[1].file)
-            assert.equals(20, entries[1].linenr)
-            assert.equals(10, entries[1].count)
+            assert.are.equal(1, #entries)
+            assert.are.equal("/tmp/helper.c", entries[1].file)
+            assert.are.equal(20, entries[1].linenr)
+            assert.are.equal(10, entries[1].count)
         end)
     end)
 
@@ -456,7 +456,7 @@ describe("find_hottest", function()
             local result = find_hottest.format_entry(entry, 100)
 
             -- Format is "{count} {symbol}"
-            assert.equals("25 unknown_func", result)
+            assert.are.equal("25 unknown_func", result)
         end)
 
         it("should format entry with same linenr and linenr_end", function()
