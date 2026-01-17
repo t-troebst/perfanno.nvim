@@ -208,6 +208,7 @@ function M.hottest_callers_function_table(event)
         return M.hottest_callers_table(event, file, line_begin, line_end)
     else
         vim.notify("Could not find surrounding function!", vim.log.levels.ERROR)
+        return nil
     end
 end
 
@@ -287,6 +288,11 @@ local function find_hottest(event, prompt, table_fn)
     assert(callgraph.callgraphs[event], "Invalid event!")
 
     local entries, total_count = table_fn(event)
+
+    if not entries then
+        -- Error already shown by table_fn
+        return
+    end
 
     local opts = {
         prompt = prompt,

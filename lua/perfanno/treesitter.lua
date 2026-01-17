@@ -10,10 +10,13 @@ local M = {}
 ---@param column number (0-indexed).
 ---@return TSNode?
 local function get_node_at_line(bufnr, line, column)
-    local root_tree =
-        vim.treesitter.get_parser(bufnr, vim.treesitter.language.get_lang(vim.bo[bufnr].filetype))
+    local ok, root_tree = pcall(
+        vim.treesitter.get_parser,
+        bufnr,
+        vim.treesitter.language.get_lang(vim.bo[bufnr].filetype)
+    )
 
-    if not root_tree then
+    if not ok or not root_tree then
         return nil
     end
 
@@ -77,8 +80,6 @@ end
 function M.get_function_lines(bufnr, linenr, column)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
 
-    local lang = vim.treesitter.language.get_lang(vim.bo[bufnr].filetype)
-
     if not linenr then
         ---@type number, number
         linenr, column = unpack(vim.api.nvim_win_get_cursor(0))
@@ -86,10 +87,13 @@ function M.get_function_lines(bufnr, linenr, column)
         column = column or 0
     end
 
-    if vim.treesitter.highlighter.active[bufnr] == nil then
+    -- Try to get the parser to check if treesitter is available
+    local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
+    if not ok or not parser then
         return nil
     end
 
+    local lang = vim.treesitter.language.get_lang(vim.bo[bufnr].filetype)
     local patterns = config.values.ts_function_patterns[lang]
         or config.values.ts_function_patterns.default
     return M.get_context_lines(bufnr, linenr, column, patterns)
