@@ -58,14 +58,11 @@ local function annotated_previewer(annotate_fn)
 
             local update_cursor = function(bufnr)
                 vim.api.nvim_buf_clear_namespace(bufnr, previewer_ns, 0, -1)
-                vim.api.nvim_buf_add_highlight(
-                    bufnr,
-                    previewer_ns,
-                    "TelescopePreviewLine",
-                    entry.lnum - 1,
-                    0,
-                    -1
-                )
+                vim.api.nvim_buf_set_extmark(bufnr, previewer_ns, entry.lnum - 1, 0, {
+                    end_row = entry.lnum - 1,
+                    hl_group = "TelescopePreviewLine",
+                    hl_eol = true,
+                })
                 vim.api.nvim_win_set_cursor(self.state.winid, { entry.lnum, 0 })
                 vim.api.nvim_buf_call(bufnr, function()
                     vim.cmd("norm! zz")

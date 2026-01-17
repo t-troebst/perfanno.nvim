@@ -187,7 +187,7 @@ end
 --- Gets the file underlying the current buffer in a canonical format.
 -- @return File in canonical, full path format (should agree with call graph file entries).
 local function current_canonical_file()
-    local file = vim.fn.expand("%", ":p")
+    local file = vim.fn.expand("%:p")
     return vim.loop.fs_realpath(file)
 end
 
