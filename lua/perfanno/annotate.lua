@@ -13,7 +13,7 @@ local namespace = vim.api.nvim_create_namespace("perfanno.annotations")
 -- @param bnr Buffer number of file.
 -- @return File path in canonical format.
 local function buffer_file(bnr)
-    local file = vim.fn.expand("#" .. bnr, ":p")
+    local file = vim.fn.expand("#" .. bnr .. ":p")
     return vim.loop.fs_realpath(file) or file
 end
 
@@ -33,14 +33,11 @@ function M.add_annotation(bnr, linenr, count, total_count, max_count)
     if config.values.line_highlights then
         local i = 1 + util.round((#config.values.line_highlights - 1) * count / max_count)
 
-        vim.api.nvim_buf_add_highlight(
-            bnr,
-            namespace,
-            config.values.line_highlights[i],
-            linenr - 1,
-            0,
-            -1
-        )
+        vim.api.nvim_buf_set_extmark(bnr, namespace, linenr - 1, 0, {
+            end_row = linenr - 1,
+            hl_group = config.values.line_highlights[i],
+            hl_eol = true,
+        })
     end
 
     if config.values.vt_highlight then
