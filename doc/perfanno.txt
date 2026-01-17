@@ -44,7 +44,7 @@ to the hottest callers of any piece of code or any function. See
 ==============================================================================
 INSTALLATION                                             *perfanno-installation*
 
-This plugin requires NeoVim 0.9 and was tested most recently with NeoVim 0.10
+This plugin requires NeoVim 0.9 and was tested most recently with NeoVim 0.11
 and perf 5.16.
 If you wish to load a call graph with stack traces, you may need a relatively
 recent version of perf.
