@@ -126,7 +126,7 @@ end
 -- @num Total number of steps in the gradient.
 function M.make_bg_highlights(start, stop, num)
     if not start then
-        local normal_hl = vim.api.nvim_get_hl(0, {name = "Normal", link = false})
+        local normal_hl = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
         start = string.format("#%06x", normal_hl.bg or 0)
     end
 
