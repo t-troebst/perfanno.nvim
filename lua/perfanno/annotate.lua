@@ -50,6 +50,32 @@ function M.add_annotation(bnr, linenr, count, total_count, max_count)
     end
 end
 
+--- Annotates buffer for a specific file path.
+-- @param bnr Buffer number to annotate.
+-- @param file File path to look up in callgraph.
+-- @param event Event to annotate, current if nil.
+-- @return true if annotations were added, false if file not in callgraph.
+function M.annotate_buffer_for_file(bnr, file, event)
+    event = event or config.selected_event
+    local cg = callgraph.callgraphs[event]
+
+    M.clear_buffer(bnr)
+
+    if not cg or not cg.node_info[file] then
+        return false
+    end
+
+    local line_count = vim.api.nvim_buf_line_count(bnr)
+
+    for linenr, info in pairs(cg.node_info[file]) do
+        if linenr <= line_count then
+            M.add_annotation(bnr, linenr, info.count, cg.total_count, cg.max_count)
+        end
+    end
+
+    return true
+end
+
 --- Annotates buffer with given buffer number for given event.
 -- @param bnr Buffer number to annotate, current if nil.
 -- @param event Event to annotate, current if nil.
@@ -58,20 +84,7 @@ function M.annotate_buffer(bnr, event)
     callgraph.check_event(event)
 
     bnr = bnr or vim.api.nvim_get_current_buf()
-    local file = buffer_file(bnr)
-
-    if not callgraph.callgraphs[event].node_info[file] then
-        return false
-    end
-
-    M.clear_buffer(bnr)
-
-    local total_count = callgraph.callgraphs[event].total_count
-    local max_count = callgraph.callgraphs[event].max_count
-
-    for linenr, info in pairs(callgraph.callgraphs[event].node_info[file]) do
-        M.add_annotation(bnr, linenr, info.count, total_count, max_count)
-    end
+    return M.annotate_buffer_for_file(bnr, buffer_file(bnr), event)
 end
 
 --- Annotates a range of lines inside of a given buffer for a given event.

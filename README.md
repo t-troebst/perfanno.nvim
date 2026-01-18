@@ -5,7 +5,7 @@ The plugin itself is language agnostic and has been tested with C, C++, Lua, and
 
 Each line is annotated with the samples that occurred in that line *including* nested function calls. This requires that the perf.data file has been recorded with call graph information.
 If the profiler provides multiple events such as, say, cpu cycles, branch mispredictions and cache misses, then you can switch between these.
-In addition, PerfAnno provides a Telescope (or `vim.ui.select`) finder that allows you to immediately jump to the hottest lines / functions in your code base or the hottest callers of a specific region of code (typically a function).
+In addition, PerfAnno provides Telescope, fzf-lua, or `vim.ui.select` finders that allow you to immediately jump to the hottest lines / functions in your code base or the hottest callers of a specific region of code (typically a function).
 
 https://user-images.githubusercontent.com/15610942/153775719-ed236a8d-d012-448d-b3b1-8b38f57d1fbf.mp4
 
@@ -25,8 +25,8 @@ However, you may want to set `line_highlights` and `vt_highlight` to appropriate
 See the provided [example config](#example-config).
 
 **Dependencies:**
-If you want to use the commands that jump to the hottest lines of code, you will probably want to have [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) installed.
-Otherwise (or if you explicitly disable telescope during setup), the plugin will fall back to `vim.ui.select` instead.
+If you want to use the commands that jump to the hottest lines of code, you will probably want to have either [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) or [fzf-lua](https://github.com/ibhagwan/fzf-lua) installed.
+Otherwise (or if you explicitly disable both during setup), the plugin will fall back to `vim.ui.select` instead.
 For `:PerfAnnotateFunction` and `:PerfHottestCallersFunction` you will need [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
 ## Example Config
@@ -93,8 +93,16 @@ require("perfanno").setup {
 
     -- Options for telescope-based hottest line finders
     telescope = {
-        -- Enable if possible, otherwise the plugin will fall back to vim.ui.select
+        -- Enable if possible, otherwise the plugin will fall back to fzf-lua or vim.ui.select
         enabled = pcall(require, "telescope"),
+        -- Annotate inside of the preview window
+        annotate = true,
+    },
+
+    -- Options for fzf-lua hottest line finders
+    fzf_lua = {
+        -- Enable if possible, otherwise the plugin will fall back to vim.ui.select
+        enabled = pcall(require, "fzf-lua"),
         -- Annotate inside of the preview window
         annotate = true,
     },
@@ -204,10 +212,12 @@ If there is more than one event that was loaded, then you will be asked to pick 
 
 ### Find hot lines
 
-* `:PerfHottestLines` opens a telescope finder with the hottest lines according to the current annotations.
-* `:PerfHottestSymbols` opens a telescope finder with the hottest symbols (i.e. functions typically) according to the current annotations.
-* `:PerfHottestCallersSelection` opens a telescope finder with the hottest lines that lead directly to the currently selected lines.
+* `:PerfHottestLines` opens a finder (telescope, fzf-lua, or vim.ui.select) with the hottest lines according to the current annotations.
+* `:PerfHottestSymbols` opens a finder with the hottest symbols (i.e. functions typically) according to the current annotations.
+* `:PerfHottestCallersSelection` opens a finder with the hottest lines that lead directly to the currently selected lines.
 * `:PerfHottestCallersFunction` works just like `:PerfHottestCallersSelection` but selects the function that contains the cursor via treesitter.
+
+When using telescope or fzf-lua, you can interactively navigate the call graph using `<C-h>` (callers) and `<C-l>` (callees) within the picker.
 
 ### Caching (experimental)
 
@@ -274,7 +284,7 @@ We try to get canonical representations of the paths but this is generally most 
 
 ## Future Goals
 
-* Add telescope finder to load / delete callgraphs from the cache.
-* Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active telescope finder).
+* Add finder (telescope/fzf-lua) to load / delete callgraphs from the cache.
+* Improve the robustness of `:PerfCycleFormat` (it currently resets relative annotations and it doesn't work inside an active finder).
 * Add support for `:FindHottestCallers` with increased depth.
 * Add `:FindHottestCallees` which is essentially `:FindHottestLines` but relative to stack traces that go through a certain selection.

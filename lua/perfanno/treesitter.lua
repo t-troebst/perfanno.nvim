@@ -4,6 +4,11 @@ local config = require("perfanno.config")
 
 local M = {}
 
+---@class TSNode
+---@field type fun(self: TSNode): string
+---@field range fun(self: TSNode): integer, integer, integer, integer
+---@field parent fun(self: TSNode): TSNode?
+
 -- Gets treesitter node at a specific position in a buffer.
 ---@param bufnr number of the buffer.
 ---@param line number (1-indexed).
@@ -72,9 +77,9 @@ end
 --- Get lines of the function that surrounds a given position.
 -- This function uses the patterns specified in the ts_function_patterns value
 -- of the config to detect functions.
----@param bufnr number to use, current if nil.
----@param linenr number (1-indexed), current if nil.
----@param column number (0-indexed), current if linenr is nil and 0 if column is nil.
+---@param bufnr? number to use, current if nil.
+---@param linenr? number (1-indexed), current if nil.
+---@param column? number (0-indexed), current if linenr is nil and 0 if column is nil.
 ---@return integer?, integer? - start line, end line (1-indexed, inclusive) of surrounding function, or nil if none was
 --         found.
 function M.get_function_lines(bufnr, linenr, column)
