@@ -33,10 +33,13 @@ function M.add_annotation(bnr, linenr, count, total_count, max_count)
     if config.values.line_highlights then
         local i = 1 + util.round((#config.values.line_highlights - 1) * count / max_count)
 
+        -- Get line length for range highlighting (hl_eol doesn't work in all terminals)
+        local line_text = vim.api.nvim_buf_get_lines(bnr, linenr - 1, linenr, false)[1] or ""
+        local line_len = #line_text
+
         vim.api.nvim_buf_set_extmark(bnr, namespace, linenr - 1, 0, {
-            end_row = linenr - 1,
+            end_col = line_len,
             hl_group = config.values.line_highlights[i],
-            hl_eol = true,
         })
     end
 
