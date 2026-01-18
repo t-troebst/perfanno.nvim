@@ -63,8 +63,8 @@ the |perfanno-example-config|.
 Dependencies~
 
 If you want to use the commands that jump to the hottest lines of code, you
-will probably want to have `telescope.nvim` installed, otherwise the plugin
-will fall back to |vim.ui.select|.
+will probably want to have either `telescope.nvim` or `fzf-lua` installed,
+otherwise the plugin will fall back to |vim.ui.select|.
 
 ==============================================================================
 CONFIGURATION                                                  *perfanno-config*
@@ -98,8 +98,16 @@ configuration is given below.
 
         -- Options for telescope-based hottest line finders
         telescope = {
-            -- Enable telescope instead of fallback vim.ui.select
+            -- Enable telescope (falls back to fzf-lua or vim.ui.select)
             enabled = pcall(require, "telescope"),
+            -- Annotate inside of the preview window
+            annotate = true,
+        },
+
+        -- Options for fzf-lua hottest line finders
+        fzf_lua = {
+            -- Enable fzf-lua (falls back to vim.ui.select)
+            enabled = pcall(require, "fzf-lua"),
             -- Annotate inside of the preview window
             annotate = true,
         },
@@ -281,16 +289,20 @@ Annotating~
 Finding Hot Lines~
 
 :PerfHottestLines                                            *:PerfHottestLines*
-    Opens a selection window (by default via telescope) that shows the hottest
-    lines of code in the code base according to the currently selected event.
+    Opens a selection window (via telescope, fzf-lua, or vim.ui.select) that
+    shows the hottest lines of code in the code base according to the currently
+    selected event.
+
+    When using telescope or fzf-lua, you can interactively navigate the call
+    graph using `<C-h>` (callers) and `<C-l>` (callees) within the picker.
 
 :PerfHottestSymbols                                        *:PerfHottestSymbols*
-    Opens a selection window (by default via telescope) that shows the hottest
-    symbols (i.e. functions, usually) in the code base.
+    Opens a selection window (via telescope, fzf-lua, or vim.ui.select) that
+    shows the hottest symbols (i.e. functions, usually) in the code base.
 
 :PerfHottestLinesSelection                          *:PerfHottestLinesSelection*
-    Opens a selection window (by default via telescope) that shows the hottest
-    lines of code that call into the visually selected region.
+    Opens a selection window (via telescope, fzf-lua, or vim.ui.select) that
+    shows the hottest lines of code that call into the visually selected region.
 
     Note: Currently this only shows direct callers.
 
