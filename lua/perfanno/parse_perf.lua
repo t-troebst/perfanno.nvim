@@ -61,19 +61,18 @@ end
 function M.detect_threads(perf_data)
     local esc = vim.fn.fnameescape(perf_data)
 
+    -- Use perf report to get thread list - much faster and more reliable than perf script
     local result = vim.system(
-        { "bash", "-c", "perf script -i " .. esc .. " -F tid,comm 2>&1 | head -10000" },
+        { "perf", "report", "-i", esc, "--stdio", "-F", "pid,comm", "--no-children", "-g", "none" },
         { text = true }
     ):wait()
 
-    -- Exit code 141 (SIGPIPE) or 143 (SIGTERM) is expected when piping to head
-    if result.code ~= 0 and result.code ~= 141 and result.code ~= 143 then
+    if result.code ~= 0 then
         vim.notify(
-            "Perf returned unexpected exit code ("
-                .. tostring(result.code)
-                .. ") when detecting threads",
+            "Perf returned exit code (" .. tostring(result.code) .. ") when detecting threads",
             vim.log.levels.WARN
         )
+        return {}
     end
 
     if not result.stdout or result.stdout == "" then
@@ -86,14 +85,16 @@ function M.detect_threads(perf_data)
     local seen = {} -- Track unique (tid, comm) pairs
 
     for _, line in ipairs(lines) do
-        -- Parse format: "  comm   tid "
-        local comm, tid = line:match("^%s*(%S+)%s+(%d+)")
-        if comm and tid then
-            tid = tonumber(tid)
-            local key = tid .. ":" .. comm
-            if not seen[key] then
-                seen[key] = true
-                table.insert(threads, { tid = tid, comm = comm })
+        local tid_comm = line:match("^%s*(%d+:%S+)")
+        if tid_comm then
+            local tid, comm = tid_comm:match("^(%d+):(.+)$")
+            if tid and comm then
+                tid = tonumber(tid)
+                local key = tid .. ":" .. comm
+                if not seen[key] then
+                    seen[key] = true
+                    table.insert(threads, { tid = tid, comm = comm })
+                end
             end
         end
     end

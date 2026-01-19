@@ -111,7 +111,7 @@ When `thread_support` is enabled:
 
 ### Implementation Details
 
-- Thread detection: Uses `perf script -i perf.data -F tid,comm | head -10000`
+- Thread detection: Uses `perf report -F pid,comm --no-children -g none` for fast, complete thread list
 - Thread filtering: Passes `--tid=XXX` to `perf report` for selected thread
 - Single-threaded perf.data: No picker shown, behaves as normal
 - Disabled by default: When `thread_support = false`, always aggregates all threads (backward compatible)
