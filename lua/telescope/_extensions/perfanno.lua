@@ -60,7 +60,12 @@ local function annotated_previewer(annotate_fn)
                 vim.api.nvim_buf_clear_namespace(bufnr, previewer_ns, 0, -1)
 
                 -- Get line length for range highlighting
-                local line_text = vim.api.nvim_buf_get_lines(bufnr, entry.lnum - 1, entry.lnum, false)[1] or ""
+                local line_text = vim.api.nvim_buf_get_lines(
+                    bufnr,
+                    entry.lnum - 1,
+                    entry.lnum,
+                    false
+                )[1] or ""
                 local line_len = #line_text
 
                 vim.api.nvim_buf_set_extmark(bufnr, previewer_ns, entry.lnum - 1, 0, {

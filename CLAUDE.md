@@ -85,3 +85,34 @@ Custom profilers integrate via:
 ```lua
 require("perfanno").load_traces({ event_name = {{ count = N, frames = {...} }, ...} })
 ```
+
+## Per-Thread Profiling Support
+
+The plugin supports profiling multi-threaded applications with per-thread analysis.
+
+### Configuration
+
+Enable thread support in your setup:
+```lua
+require("perfanno").setup({
+    thread_support = true,  -- Disabled by default for backward compatibility
+})
+```
+
+### Usage
+
+When `thread_support` is enabled:
+1. Run `:PerfLoadCallGraph` or `:PerfLoadFlat` with a multi-threaded perf.data
+2. Plugin automatically detects threads using `perf script -F tid,comm`
+3. If multiple threads found, shows picker with options:
+   - "All threads (aggregated)" - default behavior, combines all threads
+   - Individual threads: "TID 49581 (unit_tests)", "TID 49584 (cuda-EvtHandlr)", etc.
+4. Select desired thread(s) to profile
+
+### Implementation Details
+
+- Thread detection: Uses `perf script -i perf.data -F tid,comm | head -10000`
+- Thread filtering: Passes `--tid=XXX` to `perf report` for selected thread
+- Single-threaded perf.data: No picker shown, behaves as normal
+- Disabled by default: When `thread_support = false`, always aggregates all threads (backward compatible)
+- Scalability: Uses `perf report` (pre-aggregated) instead of `perf script` (raw samples) for efficiency

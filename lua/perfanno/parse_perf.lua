@@ -55,14 +55,69 @@ local function get_command_output(cmd)
     return exit_code, stdout
 end
 
+--- Detects threads in perf.data file.
+-- @param perf_data Location of "perf.data" file.
+-- @return Array of thread info tables with {tid=number, comm=string}, or empty array on error.
+function M.detect_threads(perf_data)
+    local esc = vim.fn.fnameescape(perf_data)
+
+    local result = vim.system(
+        { "bash", "-c", "perf script -i " .. esc .. " -F tid,comm 2>&1 | head -10000" },
+        { text = true }
+    ):wait()
+
+    -- Exit code 141 (SIGPIPE) or 143 (SIGTERM) is expected when piping to head
+    if result.code ~= 0 and result.code ~= 141 and result.code ~= 143 then
+        vim.notify(
+            "Perf returned unexpected exit code ("
+                .. tostring(result.code)
+                .. ") when detecting threads",
+            vim.log.levels.WARN
+        )
+    end
+
+    if not result.stdout or result.stdout == "" then
+        return {}
+    end
+
+    local lines = vim.split(result.stdout, "\n")
+
+    local threads = {}
+    local seen = {} -- Track unique (tid, comm) pairs
+
+    for _, line in ipairs(lines) do
+        -- Parse format: "  comm   tid "
+        local comm, tid = line:match("^%s*(%S+)%s+(%d+)")
+        if comm and tid then
+            tid = tonumber(tid)
+            local key = tid .. ":" .. comm
+            if not seen[key] then
+                seen[key] = true
+                table.insert(threads, { tid = tid, comm = comm })
+            end
+        end
+    end
+
+    -- Sort by TID for consistent ordering
+    table.sort(threads, function(a, b)
+        return a.tid < b.tid
+    end)
+
+    return threads
+end
+
 --- Obtains simple flat profile from perf (no callgraph).
 -- @param perf_data Location of "perf.data" file.
+-- @param tid Optional thread ID to filter results (nil for all threads).
 -- @return Stack traces.
-function M.perf_flat(perf_data)
+function M.perf_flat(perf_data, tid)
     local esc = vim.fn.fnameescape(perf_data)
     -- TODO: could this break if the user has a perf config?
     -- TODO: what versions of perf does this work for?
     local cmd = "perf report -g none -F sample,srcline,symbol --stdio --full-source-path -i " .. esc
+    if tid then
+        cmd = cmd .. " --tid=" .. tostring(tid)
+    end
     local exit_code, lines = get_command_output(cmd)
 
     if exit_code ~= 0 then
@@ -106,14 +161,18 @@ end
 
 --- Obtains actual stack traces from perf via the folded output mode.
 -- @param perf_data Location of "perf.data" file.
+-- @param tid Optional thread ID to filter results (nil for all threads).
 -- @return Stack traces.
-function M.perf_callgraph(perf_data)
+function M.perf_callgraph(perf_data, tid)
     local esc = vim.fn.fnameescape(perf_data)
     -- TODO: could this break if the user has a perf config?
     -- TODO: what versions of perf does this work for?
     local cmd = "perf report -g folded,0,caller,srcline,branch,count"
         .. " --no-children --full-source-path --stdio -i "
         .. esc
+    if tid then
+        cmd = cmd .. " --tid=" .. tostring(tid)
+    end
     local exit_code, lines = get_command_output(cmd)
 
     if exit_code ~= 0 then

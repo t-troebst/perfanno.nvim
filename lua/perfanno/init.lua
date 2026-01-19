@@ -56,6 +56,51 @@ function M.setup(opts)
     end
 end
 
+--- Prompts user to select a thread if multiple threads are detected.
+-- @param perf_data Path to perf.data file.
+-- @return Selected thread ID (number) or nil for all threads, or false if cancelled.
+local function pick_thread(perf_data)
+    local parse_perf = require("perfanno.parse_perf")
+    local threads = parse_perf.detect_threads(perf_data)
+
+    if #threads == 0 then
+        vim.notify("Could not detect threads in perf data", vim.log.levels.WARN)
+        return nil
+    end
+
+    if #threads == 1 then
+        -- Single thread, no need to ask
+        return nil
+    end
+
+    -- Multiple threads detected, show picker
+    local co = coroutine.running()
+    local options = { "All threads (aggregated)" }
+
+    for _, thread in ipairs(threads) do
+        table.insert(options, string.format("TID %d (%s)", thread.tid, thread.comm))
+    end
+
+    vim.schedule(function()
+        vim.ui.select(options, {
+            prompt = "Select thread to profile:",
+        }, function(choice, idx)
+            if not choice then
+                coroutine.resume(co, false) -- User cancelled
+                return
+            end
+
+            if idx == 1 then
+                coroutine.resume(co, nil) -- All threads
+            else
+                coroutine.resume(co, threads[idx - 1].tid) -- Specific thread
+            end
+        end)
+    end)
+
+    return coroutine.yield()
+end
+
 --- Checks if a file exists, if not asks the user, finally returns result
 -- @param default Default file such as "perf.data" to look for.
 -- @return Data file
@@ -198,10 +243,22 @@ M.load_perf_flat = coroutine.wrap(function()
         local data_file = get_data_file("perf.data")
 
         if data_file then
+            local tid = nil
+
+            if config.values.thread_support then
+                tid = pick_thread(data_file)
+                if tid == false then
+                    -- User cancelled thread selection
+                    coroutine.yield()
+                    goto continue
+                end
+            end
+
             vim.notify("Running perf...")
-            M.load_traces(require("perfanno.parse_perf").perf_flat(data_file))
+            M.load_traces(require("perfanno.parse_perf").perf_flat(data_file, tid))
         end
 
+        ::continue::
         coroutine.yield()
     end
 end)
@@ -212,10 +269,22 @@ M.load_perf_callgraph = coroutine.wrap(function()
         local data_file = get_data_file("perf.data")
 
         if data_file then
+            local tid = nil
+
+            if config.values.thread_support then
+                tid = pick_thread(data_file)
+                if tid == false then
+                    -- User cancelled thread selection
+                    coroutine.yield()
+                    goto continue
+                end
+            end
+
             vim.notify("Running perf...")
-            M.load_traces(require("perfanno.parse_perf").perf_callgraph(data_file))
+            M.load_traces(require("perfanno.parse_perf").perf_callgraph(data_file, tid))
         end
 
+        ::continue::
         coroutine.yield()
     end
 end)
