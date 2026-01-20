@@ -44,7 +44,7 @@ to the hottest callers of any piece of code or any function. See
 ==============================================================================
 INSTALLATION                                             *perfanno-installation*
 
-This plugin requires NeoVim 0.9 and was tested most recently with NeoVim 0.11
+This plugin requires NeoVim 0.10 and was tested most recently with NeoVim 0.11
 and perf 5.16.
 If you wish to load a call graph with stack traces, you may need a relatively
 recent version of perf.
@@ -123,7 +123,11 @@ configuration is given below.
             -- weirdlang = {
             --     "weirdfunc",
             -- }
-        }
+        },
+
+        -- Enable per-thread profiling for multi-threaded applications
+        -- When enabled, you can select which thread(s) to profile
+        thread_support = false,
     }
 
     local telescope = require("telescope")
@@ -207,6 +211,25 @@ also want to try:
 However, this requires that your program and all libraries have been compiled
 with `--fno-omit-frame-pointer` and you may find that the line numbers are
 slightly off. For more information, see `PERF(1)`.
+
+Multi-threaded Applications~
+
+If you're profiling multi-threaded applications and want to analyze per-thread
+performance, enable `thread_support` in your configuration:
+>
+    require("perfanno").setup({
+        thread_support = true,
+    })
+<
+When loading perf data from a multi-threaded program, you'll be prompted to
+select which thread(s) to profile:
+  - All threads (aggregated) - Default behavior, combines all threads
+  - Individual threads - Analyze a specific thread (e.g., "TID 12345 (worker)")
+
+This is useful for identifying which threads consume the most resources or for
+analyzing thread-specific performance characteristics.
+
+Other Profiling Tools~
 
 If you are using another profiling tool that is not perf, you need to generate
 a list of folded stacktraces. See |:PerfLoadFlameGraph| for more details.

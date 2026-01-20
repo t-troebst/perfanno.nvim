@@ -54,6 +54,12 @@ local defaults = {
     -- Overwrite the default behaviour of prompting for the path to the perf.data with a custom function that returns
     -- the path to a perf file as string.
     get_path_callback = nil,
+
+    -- Enable per-thread profiling support for multi-threaded applications.
+    -- When enabled and multiple threads are detected in perf.data, prompts user to select which thread(s) to profile.
+    -- Options: all threads (aggregated, default) or individual threads.
+    -- Disabled by default for backward compatibility.
+    thread_support = false,
 }
 
 local M = {}
