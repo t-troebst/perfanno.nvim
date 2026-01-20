@@ -32,27 +32,27 @@
 
 local M = {}
 
---- Execute cmd and return the stdout result.
--- @param cmd Command to execute.
--- @param silent Prevent stderr output if true.
--- @return Pair of exit code and stdout as a list of lines
-local function get_command_output(cmd)
-    local co = coroutine.running()
-    local exit_code, stdout
+--- Execute perf command and return stdout as lines.
+-- @param cmd_args Array of command arguments (e.g., {"perf", "report", ...})
+-- @param error_message Error message prefix for notifications
+-- @return Array of output lines, or empty array on error
+local function run_perf_command(cmd_args, error_message)
+    local result = vim.system(cmd_args, { text = true }):wait()
 
-    vim.fn.jobstart(cmd, {
-        stdout_buffered = true,
-        on_stdout = function(_, data)
-            stdout = data
-        end,
-        on_exit = function(_, code)
-            exit_code = code
-            coroutine.resume(co)
-        end,
-    })
+    if result.code ~= 0 then
+        local cmd_str = table.concat(cmd_args, " ")
+        vim.notify(
+            error_message .. " (exit code " .. tostring(result.code) .. "): " .. cmd_str,
+            vim.log.levels.ERROR
+        )
+        return {}
+    end
 
-    coroutine.yield()
-    return exit_code, stdout
+    if not result.stdout or result.stdout == "" then
+        return {}
+    end
+
+    return vim.split(result.stdout, "\n")
 end
 
 --- Detects threads in perf.data file.
@@ -69,7 +69,7 @@ function M.detect_threads(perf_data)
 
     if result.code ~= 0 then
         vim.notify(
-            "Perf returned exit code (" .. tostring(result.code) .. ") when detecting threads",
+            "Failed to detect threads in perf data (exit code " .. tostring(result.code) .. ")",
             vim.log.levels.WARN
         )
         return {}
@@ -115,17 +115,24 @@ function M.perf_flat(perf_data, tid)
     local esc = vim.fn.fnameescape(perf_data)
     -- TODO: could this break if the user has a perf config?
     -- TODO: what versions of perf does this work for?
-    local cmd = "perf report -g none -F sample,srcline,symbol --stdio --full-source-path -i " .. esc
+    local cmd_args = {
+        "perf",
+        "report",
+        "-g",
+        "none",
+        "-F",
+        "sample,srcline,symbol",
+        "--stdio",
+        "--full-source-path",
+        "-i",
+        esc,
+    }
     if tid then
-        cmd = cmd .. " --tid=" .. tostring(tid)
+        table.insert(cmd_args, "--tid=" .. tostring(tid))
     end
-    local exit_code, lines = get_command_output(cmd)
 
-    if exit_code ~= 0 then
-        vim.notify(
-            "Perf returned non-zero exit code (" .. tostring(exit_code) .. ") for command: " .. cmd,
-            vim.log.levels.ERROR
-        )
+    local lines = run_perf_command(cmd_args, "Failed to load flat perf profile")
+    if #lines == 0 then
         return {}
     end
 
@@ -168,19 +175,23 @@ function M.perf_callgraph(perf_data, tid)
     local esc = vim.fn.fnameescape(perf_data)
     -- TODO: could this break if the user has a perf config?
     -- TODO: what versions of perf does this work for?
-    local cmd = "perf report -g folded,0,caller,srcline,branch,count"
-        .. " --no-children --full-source-path --stdio -i "
-        .. esc
+    local cmd_args = {
+        "perf",
+        "report",
+        "-g",
+        "folded,0,caller,srcline,branch,count",
+        "--no-children",
+        "--full-source-path",
+        "--stdio",
+        "-i",
+        esc,
+    }
     if tid then
-        cmd = cmd .. " --tid=" .. tostring(tid)
+        table.insert(cmd_args, "--tid=" .. tostring(tid))
     end
-    local exit_code, lines = get_command_output(cmd)
 
-    if exit_code ~= 0 then
-        vim.notify(
-            "Perf returned non-zero exit code (" .. tostring(exit_code) .. ") for command: " .. cmd,
-            vim.log.levels.ERROR
-        )
+    local lines = run_perf_command(cmd_args, "Failed to load perf call graph")
+    if #lines == 0 then
         return {}
     end
 
