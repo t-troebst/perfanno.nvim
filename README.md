@@ -11,7 +11,7 @@ https://user-images.githubusercontent.com/15610942/153775719-ed236a8d-d012-448d-
 
 ## Installation
 
-This plugin requires NeoVim 0.9 and was tested most recently with NeoVim 0.11 and perf 5.16.
+This plugin requires NeoVim 0.10 and was tested most recently with NeoVim 0.11 and perf 5.16.
 The call graph mode may require a relatively recent version of perf that supports folded output, though it should be easy to add support for older versions manually.
 
 You should be able to install this plugin the same way you install other NeoVim lua plugins, e.g. via `use "t-troebst/perfanno.nvim"` in packer.
@@ -123,6 +123,10 @@ require("perfanno").setup {
     -- Overwrite the default behaviour of prompting for the path to the perf.data with a custom function that returns
     -- the path to a perf file as string.
     get_path_callback = nil,
+
+    -- Enable per-thread profiling support for multi-threaded applications
+    -- When enabled, you can select which thread(s) to profile when loading perf.data
+    thread_support = false,
 }
 
 local telescope = require("telescope")
@@ -166,6 +170,24 @@ If the `dwarf` option creates files that are too large or take too long to proce
 
 However, this requires that your program and all libraries have been compiled with `-fno-omit-frame-pointer` and you may find that the line numbers are slightly off.
 For more information, see the documentation of perf.
+
+### Multi-threaded Applications
+
+If you're profiling multi-threaded applications and want to analyze per-thread performance, enable thread support in your configuration:
+
+```lua
+require("perfanno").setup({
+    thread_support = true,
+})
+```
+
+When loading perf data from a multi-threaded program, you'll be prompted to select which thread(s) to profile:
+- **All threads (aggregated)** - Default behavior, combines samples from all threads
+- **Individual threads** - Analyze a specific thread, e.g. "TID 12345 (worker-thread)"
+
+This is useful for identifying which threads are consuming the most resources or analyzing thread-specific performance characteristics.
+
+### Using Other Profilers
 
 If you are using another profiler, you will need to generate a `perf.log` file that stores data in the flamegraph format, i.e. as a list of `;`-separated stack traces with a count at the end in each line.
 For example:
