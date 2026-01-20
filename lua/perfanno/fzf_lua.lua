@@ -46,9 +46,13 @@ end
 function PerfannoPreviewer:preview_buf_post(entry)
     PerfannoPreviewer.super.preview_buf_post(self, entry)
 
-    if config.values.fzf_lua.annotate and self.preview_bufnr then
+    if config.values.fzf_lua.annotate and self.preview_bufnr and entry.path then
         if vim.api.nvim_buf_is_valid(self.preview_bufnr) then
-            annotate.annotate_buffer_for_file(self.preview_bufnr, entry.path)
+            -- Check if the file actually exists and is readable
+            local stat = vim.loop.fs_stat(entry.path)
+            if stat and stat.type == "file" then
+                annotate.annotate_buffer_for_file(self.preview_bufnr, entry.path)
+            end
         end
     end
 end
